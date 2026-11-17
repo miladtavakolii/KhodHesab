@@ -25,22 +25,22 @@ interface TransactionDao {
     suspend fun insertTransaction(transaction: TransactionEntity): Long
 
     /**
-     * Updates a transaction record.
+     * Updates a transaction record. Returns number of updated rows.
      */
     @Update
-    suspend fun updateTransaction(transaction: TransactionEntity)
+    suspend fun updateTransaction(transaction: TransactionEntity): Int
 
     /**
      * Updates category and user description for a specific transaction.
      */
     @Query("UPDATE transactions SET categoryId = :categoryId, description = :description WHERE id = :transactionId")
-    suspend fun updateCategoryAndDescription(transactionId: Long, categoryId: Long?, description: String?)
+    suspend fun updateCategoryAndDescription(transactionId: Long, categoryId: Long?, description: String?): Int
 
     /**
      * Deletes a transaction by ID.
      */
     @Query("DELETE FROM transactions WHERE id = :transactionId")
-    suspend fun deleteTransaction(transactionId: Long)
+    suspend fun deleteTransaction(transactionId: Long): Int
 
     /**
      * Checks if a transaction with the given SMS hash already exists.

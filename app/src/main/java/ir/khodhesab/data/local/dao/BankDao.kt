@@ -17,7 +17,7 @@ interface BankDao {
      * Inserts a list of banks ignoring conflicts on existing unique codes.
      */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAll(banks: List<BankEntity>)
+    suspend fun insertAll(banks: List<BankEntity>): List<Long>
 
     /**
      * Inserts a single bank record.

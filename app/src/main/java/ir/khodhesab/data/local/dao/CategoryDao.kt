@@ -25,13 +25,13 @@ interface CategoryDao {
      * Inserts a list of categories ignoring conflicts.
      */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAll(categories: List<CategoryEntity>)
+    suspend fun insertAll(categories: List<CategoryEntity>): List<Long>
 
     /**
-     * Updates a category record.
+     * Updates a category record. Returns number of updated rows.
      */
     @Update
-    suspend fun updateCategory(category: CategoryEntity)
+    suspend fun updateCategory(category: CategoryEntity): Int
 
     /**
      * Deletes a user-created custom category (`isDefault = 0`). Default system categories cannot be deleted.

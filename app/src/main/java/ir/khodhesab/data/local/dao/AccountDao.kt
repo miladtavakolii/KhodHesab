@@ -23,16 +23,16 @@ interface AccountDao {
     suspend fun insertAccount(account: AccountEntity): Long
 
     /**
-     * Updates an account record.
+     * Updates an account record. Returns number of updated rows.
      */
     @Update
-    suspend fun updateAccount(account: AccountEntity)
+    suspend fun updateAccount(account: AccountEntity): Int
 
     /**
      * Updates an account's user-customized display title.
      */
     @Query("UPDATE accounts SET title = :newTitle WHERE id = :accountId")
-    suspend fun updateAccountTitle(accountId: Long, newTitle: String)
+    suspend fun updateAccountTitle(accountId: Long, newTitle: String): Int
 
     /**
      * Updates an account's [AccountEntity.currentBalance] and [AccountEntity.lastBalanceUpdate] timestamp
