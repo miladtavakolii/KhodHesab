@@ -19,7 +19,7 @@ espressoCore = "3.6.1"
 mockk = "1.13.16"
 turbine = "1.2.0"
 truth = "1.4.4"
-robolectric = "4.14.1"
+robolectric = "4.18"
 androidxTestCore = "1.6.1"
 
 [libraries]

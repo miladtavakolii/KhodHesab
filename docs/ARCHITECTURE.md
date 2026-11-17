@@ -50,6 +50,63 @@ Produces deterministic SHA-256 hashes to prevent duplicate SMS imports into the 
 val hash = SmsHashGenerator.generateHash(sender = "BANK-MELLI", normalizedBody = body, timestampBucket = timestamp)
 ```
 
+## Database Schema & Entity-Relationship Diagram (ERD)
+
+```mermaid
+erDiagram
+    banks ||--o{ accounts : "has"
+    accounts ||--o{ transactions : "contains"
+    categories ||--o{ transactions : "categorizes"
+
+    banks {
+        bigint id PK
+        string code UK
+        string persianName
+        string senderNumbers
+        string colorHex
+        string iconKey
+    }
+
+    accounts {
+        bigint id PK
+        bigint bankId FK
+        string accountIdentifier
+        string title
+        bigint currentBalance
+        bigint lastBalanceUpdate
+        boolean isActive
+    }
+
+    categories {
+        bigint id PK
+        string name
+        enum type
+        string iconKey
+        string colorHex
+        boolean isDefault
+        string keywords
+    }
+
+    transactions {
+        bigint id PK
+        bigint accountId FK
+        bigint categoryId FK
+        enum type
+        bigint amount
+        bigint balanceAfter
+        bigint timestamp
+        string description
+        string rawSmsBody
+        string smsHash UK
+    }
+```
+
+### Database Features
+- **Composite Unique Index:** `(bankId, accountIdentifier)` on `accounts` table ensures unique user accounts under each bank.
+- **SMS Deduplication:** Unique SHA-256 hash index `smsHash` on `transactions` table ignores duplicate SMS message imports.
+- **Balance Concurrency Control:** `updateBalanceIfNewer` query ensures older out-of-order SMS imports do not overwrite a newer known balance.
+- **Pre-seeded Initial Data:** 18 major Iranian banks (Melli, Mellat, Blu, etc.) and 16 default categories populated on database creation via `DatabaseSeeder`.
+
 ## Testing & Commit Standards
 - **Testing:** 100% unit test coverage required for core logic and domain use cases. Run `./gradlew testDebugUnitTest`.
 - **Commits:** Conventional Commits standard (`feat:`, `chore:`, `test:`, `docs:`).

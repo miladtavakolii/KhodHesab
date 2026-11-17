@@ -35,7 +35,7 @@ KhodHesab is an offline-first, privacy-respecting Android application built with
 
 ## 8-Phase Development Roadmap
 - [x] **Phase 0:** Project Setup, Architecture Skeleton & Core Utilities
-- [ ] **Phase 1:** Core Data Layer & Room Database Schema
+- [x] **Phase 1:** Core Data Layer & Room Database Schema
 - [ ] **Phase 2:** Advanced Bank Regex & SMS Engine
 - [ ] **Phase 3:** Domain Layer & Financial Analytics Use Cases
 - [ ] **Phase 4:** Background SMS Processing & Sync Worker
