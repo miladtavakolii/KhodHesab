@@ -37,6 +37,12 @@ interface TransactionDao {
     suspend fun updateCategoryAndDescription(transactionId: Long, categoryId: Long?, description: String?): Int
 
     /**
+     * Updates the transaction type for a specific transaction.
+     */
+    @Query("UPDATE transactions SET type = :type WHERE id = :transactionId")
+    suspend fun updateTransactionType(transactionId: Long, type: TransactionType): Int
+
+    /**
      * Deletes a transaction by ID.
      */
     @Query("DELETE FROM transactions WHERE id = :transactionId")

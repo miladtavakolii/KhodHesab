@@ -32,6 +32,12 @@ interface BankDao {
     fun getAllBanks(): Flow<List<BankEntity>>
 
     /**
+     * Finds a bank by its primary key ID.
+     */
+    @Query("SELECT * FROM banks WHERE id = :bankId LIMIT 1")
+    suspend fun getBankById(bankId: Long): BankEntity?
+
+    /**
      * Finds a bank by its unique string code (e.g., `"MELLAT"`).
      */
     @Query("SELECT * FROM banks WHERE code = :code LIMIT 1")
