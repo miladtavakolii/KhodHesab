@@ -122,6 +122,33 @@ The domain layer is 100% pure Kotlin (`ir.khodhesab.domain`), completely decoupl
 - **Transfer Exclusion:** Transactions classified as `TransactionKind.TRANSFER` are excluded from income/expense financial reporting calculations to prevent double-counting internal funds transfers.
 - **Percentage Distribution:** Category breakdown percentages are calculated safely (`totalPeriodAmount > 0`) to prevent division-by-zero runtime exceptions.
 
+## SMS Parsing Engine Architecture & Strategy Pipeline
+
+```mermaid
+flowchart TD
+    RawSMS[Raw SMS Message] --> Filter{NonFinancialSmsFilter}
+    Filter -- OTP / Login Alert --> Ignored[IgnoredNonFinancial]
+    Filter -- Valid Candidate --> Normalizer[PersianTextNormalizer]
+    Normalizer --> Detector{BankDetector}
+    Detector -- Sender / Keyword Match --> Strategy{BankParserStrategy}
+    Detector -- Unrecognized Sender --> Unrecognized[UnrecognizedBank]
+    Strategy -- Bank Specific / Generic --> Extractor[BaseRegexExtractor]
+    Extractor --> Hasher[SmsHashGenerator]
+    Hasher --> Success[ParsedSmsData]
+    Success --> Coordinator[SmsProcessingCoordinator]
+    Coordinator --> UseCase[RecordSmsTransactionUseCase]
+```
+
+### Supported Iranian Banks (18+)
+- **State & Commercial Banks:** بانک ملی، بانک ملت، بانک صادرات، بانک تجارت، بانک کشاورزی، بانک سپه، بانک مسکن، بانک رفاه کارگران.
+- **Private & Neobanks:** بلوبانک، بانک سامان، بانک پاسارگاد، بانک پارسیان، بانک اقتصاد نوین، بانک شهر، بانک دی، بانک سینا، بانک قرض‌الحسنه رسالت، بانک قرض‌الحسنه مهر ایران.
+
+### Adding New Bank Parsing Strategies
+To add support for a new bank or custom SMS format:
+1. Implement `BankParserStrategy` in `ir.khodhesab.sms_engine.parser.strategy.banks`.
+2. Define `supportedBankCodes` with the bank code (e.g. `setOf("MY_BANK")`).
+3. Bind the strategy in `SmsEngineModule` using `@IntoSet`.
+
 ## Testing & Commit Standards
 - **Testing:** 100% unit test coverage required for core logic and domain use cases. Run `./gradlew testDebugUnitTest`.
 - **Commits:** Conventional Commits standard (`feat:`, `chore:`, `test:`, `docs:`).

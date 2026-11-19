@@ -19,17 +19,24 @@ object BaseRegexExtractor {
      * Detects [TransactionKind] based on Persian action keywords and signed prefixes (`+` / `-`).
      */
     fun detectTransactionKind(normalizedBody: String): TransactionKind {
-        if (Regex("(مبلغ|واریز|برداشت)[:\\s]*\\+").containsMatchIn(normalizedBody) || Regex("\\+\\d+").containsMatchIn(normalizedBody)) {
+        // 1. Check explicit positive or negative sign directly attached to amount
+        if (Regex("(?:مبلغ|واریز|برداشت)[:\\s]*\\+\\s*[\\d,،٬]+").containsMatchIn(normalizedBody) ||
+            Regex("\\+\\s*[\\d,،٬]+\\s*(?:ریال|تومان)").containsMatchIn(normalizedBody)) {
             return TransactionKind.DEPOSIT
         }
-        if (Regex("(مبلغ|واریز|برداشت)[:\\s]*-").containsMatchIn(normalizedBody) || Regex("-\\d+").containsMatchIn(normalizedBody)) {
+        if (Regex("(?:مبلغ|واریز|برداشت)[:\\s]*-\\s*[\\d,،٬]+").containsMatchIn(normalizedBody) ||
+            Regex("-\\s*[\\d,،٬]+\\s*(?:ریال|تومان)").containsMatchIn(normalizedBody) ||
+            Regex("[\\d,،٬]+-\\s*(?:ریال|تومان)").containsMatchIn(normalizedBody)) {
             return TransactionKind.WITHDRAWAL
         }
 
+        // 2. Check withdrawal vs deposit keywords
         val withdrawalScore = withdrawalKeywords.count { normalizedBody.contains(it, ignoreCase = true) }
         val depositScore = depositKeywords.count { normalizedBody.contains(it, ignoreCase = true) }
 
-        return if (withdrawalScore >= depositScore && withdrawalScore > 0) {
+        return if (depositScore > withdrawalScore) {
+            TransactionKind.DEPOSIT
+        } else if (withdrawalScore > depositScore) {
             TransactionKind.WITHDRAWAL
         } else if (depositScore > 0) {
             TransactionKind.DEPOSIT
