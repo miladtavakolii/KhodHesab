@@ -222,6 +222,31 @@ flowchart TD
    - Modal BottomSheet accessible globally from any screen or notification deep-link intent (`ACTION_EDIT_TRANSACTION`).
    - One-tap category grid selection, transaction kind switcher, user description notes, and raw bank SMS body viewer.
 
+## Category Management, Keyword Auto-Categorization & Transfer Pairing
+
+```mermaid
+flowchart TD
+    SMS[Parsed SMS] --> KeywordEngine[ApplyKeywordRulesUseCase]
+    KeywordEngine --> Match{Normalized Keyword Match?}
+    Match -- Yes --> AutoCat[Auto Assign Category & Save]
+    Match -- No --> Uncat[Uncategorized]
+
+    TransferEngine[DetectInternalTransfersUseCase] --> Pairs{Withdrawal & Deposit Pair?}
+    Pairs -- Same Amount + Diff Accounts + <= 15 Min --> PairFound[Candidate Transfer Pair]
+    PairFound -- User Confirms / Auto Pair --> MarkTransfer[TransactionKind.TRANSFER]
+```
+
+### Key Business Rules & Utilities
+1. **`ApplyKeywordRulesUseCase`**:
+   - Retroactively matches Persian keywords against transaction notes and raw SMS bodies.
+   - Normalizes characters and Persian/English digits (`PersianTextNormalizer`) to ensure robust substring matching regardless of Arabic vs. Persian character variants.
+2. **`DetectInternalTransfersUseCase`**:
+   - Scans non-transfer transactions to detect candidate internal card-to-card transfers between different user accounts (`account.id != other.account.id`) with matching amounts within a 15-minute window.
+   - Once confirmed, both transactions are converted to `TransactionKind.TRANSFER`, keeping income/expense totals clean.
+3. **Default vs. Custom Categories**:
+   - Default categories (`isDefault = true`) cannot be deleted, preserving core system identity, but users can freely add custom keywords.
+   - Custom categories (`isDefault = false`) can be created, updated, and deleted.
+
 ## Testing & Commit Standards
 - **Testing:** 100% unit test coverage required for core logic and domain use cases. Run `./gradlew testDebugUnitTest`.
 - **Commits:** Conventional Commits standard (`feat:`, `chore:`, `test:`, `docs:`).

@@ -15,12 +15,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import ir.khodhesab.domain.model.Transaction
+import ir.khodhesab.ui.screens.categories.CategoriesViewModel
 import ir.khodhesab.ui.screens.dashboard.DashboardViewModel
 import ir.khodhesab.ui.screens.transaction_detail.AddManualTransactionSheet
 import ir.khodhesab.ui.screens.transaction_detail.TransactionDetailViewModel
@@ -36,6 +37,7 @@ fun MainAppScaffold(
     initialEditTransactionId: Long? = null,
     dashboardViewModel: DashboardViewModel = hiltViewModel(),
     transactionsViewModel: TransactionsViewModel = hiltViewModel(),
+    categoriesViewModel: CategoriesViewModel = hiltViewModel(),
     transactionDetailViewModel: TransactionDetailViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
@@ -44,6 +46,7 @@ fun MainAppScaffold(
 
     val dashboardState by dashboardViewModel.uiState.collectAsState()
     val transactionsState by transactionsViewModel.uiState.collectAsState()
+    val categoriesState by categoriesViewModel.uiState.collectAsState()
     val detailState by transactionDetailViewModel.uiState.collectAsState()
 
     var activeEditingTransaction by remember { mutableStateOf<Transaction?>(null) }
@@ -110,6 +113,8 @@ fun MainAppScaffold(
             dashboardViewModel = dashboardViewModel,
             transactionsState = transactionsState,
             transactionsViewModel = transactionsViewModel,
+            categoriesState = categoriesState,
+            categoriesViewModel = categoriesViewModel,
             onTransactionClick = { tx ->
                 transactionDetailViewModel.loadTransaction(tx.id)
                 activeEditingTransaction = tx

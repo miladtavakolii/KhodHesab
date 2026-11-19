@@ -11,6 +11,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import ir.khodhesab.domain.model.Transaction
+import ir.khodhesab.ui.screens.categories.CategoriesScreen
+import ir.khodhesab.ui.screens.categories.CategoriesUiState
+import ir.khodhesab.ui.screens.categories.CategoriesViewModel
 import ir.khodhesab.ui.screens.dashboard.DashboardScreen
 import ir.khodhesab.ui.screens.dashboard.DashboardUiState
 import ir.khodhesab.ui.screens.dashboard.DashboardViewModel
@@ -19,7 +22,7 @@ import ir.khodhesab.ui.screens.transactions.TransactionsUiState
 import ir.khodhesab.ui.screens.transactions.TransactionsViewModel
 
 /**
- * Navigation Host component for KhodHesab app hosting Dashboard, Transactions, Reports, and Categories screens.
+ * Navigation Host component for KhodHesab app.
  */
 @Composable
 fun KhodHesabNavHost(
@@ -28,6 +31,8 @@ fun KhodHesabNavHost(
     dashboardViewModel: DashboardViewModel,
     transactionsState: TransactionsUiState,
     transactionsViewModel: TransactionsViewModel,
+    categoriesState: CategoriesUiState,
+    categoriesViewModel: CategoriesViewModel,
     onTransactionClick: (Transaction) -> Unit,
     onAddManualTransactionClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -79,15 +84,18 @@ fun KhodHesabNavHost(
         }
 
         composable(KhodHesabDestination.Categories.route) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "صفحه دسته‌بندی‌ها",
-                    style = MaterialTheme.typography.titleLarge
-                )
-            }
+            CategoriesScreen(
+                state = categoriesState,
+                onSelectKind = { categoriesViewModel.onSelectKind(it) },
+                onStartCreateCategory = { categoriesViewModel.onStartCreateCategory() },
+                onStartEditCategory = { categoriesViewModel.onStartEditCategory(it) },
+                onDismissEditor = { categoriesViewModel.onDismissEditor() },
+                onSaveCategory = { name, icon, color, kws -> categoriesViewModel.onSaveCategory(name, icon, color, kws) },
+                onDeleteCategory = { categoriesViewModel.onDeleteCategory(it) },
+                onRunRetroactiveAutoCategorization = { categoriesViewModel.onRunRetroactiveAutoCategorization() },
+                onConfirmInternalTransfer = { categoriesViewModel.onConfirmInternalTransfer(it) },
+                onDismissFeedback = { categoriesViewModel.onDismissFeedback() }
+            )
         }
     }
 }

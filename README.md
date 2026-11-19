@@ -41,7 +41,8 @@ KhodHesab is an offline-first, privacy-respecting Android application built with
 - [x] **Phase 4:** Background SMS Processing & Sync Worker
 - [x] **Phase 5:** Jetpack Compose UI Framework & Navigation
 - [x] **Phase 6:** Feature Screens (Dashboard, Transactions, Editors)
-- [ ] **Phase 7:** Financial Reports & Custom Category Management
+- [x] **Phase 7:** Category Management, Keyword Rules & Smart Transfer Detection
+- [ ] **Phase 8:** Financial Reports, Jalali Period Charts & Export Options
 
 ## License
 Private / Open Source Project.
