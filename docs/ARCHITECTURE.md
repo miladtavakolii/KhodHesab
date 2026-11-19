@@ -247,6 +247,29 @@ flowchart TD
    - Default categories (`isDefault = true`) cannot be deleted, preserving core system identity, but users can freely add custom keywords.
    - Custom categories (`isDefault = false`) can be created, updated, and deleted.
 
+## Financial Analytics, Canvas Charts, CSV Export & SQLite Backup
+
+```mermaid
+flowchart TD
+    ReportsVM[ReportsViewModel] -->|ReportsUiState| ReportsScreen[ReportsScreen]
+    ReportsScreen --> Donut[CategoryDonutChart Canvas]
+    ReportsScreen --> Bar[IncomeExpenseBarChart Canvas]
+
+    ReportsVM -- Export CSV --> CsvExporter[CsvReportExporter + UTF-8 BOM]
+    ReportsVM -- Export Backup --> BackupMgr[DatabaseBackupManager + SQLite Header Validation]
+    CsvExporter & BackupMgr --> ShareSheet[Android Share Sheet FileProvider Intent]
+```
+
+### Analytics & Export Features
+1. **`GetTrendSeriesUseCase`**:
+   - Calculates time-series buckets for `DAILY` (7 days of Jalali week), `WEEKLY` (last 4 Jalali weeks), and `MONTHLY` (last 6 Jalali months).
+   - Excludes internal transfers so trend bars reflect true income vs. expense cash flow.
+2. **`CsvReportExporter`**:
+   - Encodes exported CSV files with **UTF-8 BOM (`\uFEFF`)** so Microsoft Excel displays Persian text without garbled characters.
+   - Formats amounts, Jalali dates, bank names, accounts, and descriptions with proper CSV escaping.
+3. **`DatabaseBackupManager`**:
+   - Checkpoints WAL (`PRAGMA wal_checkpoint(FULL)`), exports full `.db` files, validates SQLite header magic bytes (`"SQLite format 3\u0000"`), and restores database state safely.
+
 ## Testing & Commit Standards
 - **Testing:** 100% unit test coverage required for core logic and domain use cases. Run `./gradlew testDebugUnitTest`.
 - **Commits:** Conventional Commits standard (`feat:`, `chore:`, `test:`, `docs:`).

@@ -42,7 +42,7 @@ KhodHesab is an offline-first, privacy-respecting Android application built with
 - [x] **Phase 5:** Jetpack Compose UI Framework & Navigation
 - [x] **Phase 6:** Feature Screens (Dashboard, Transactions, Editors)
 - [x] **Phase 7:** Category Management, Keyword Rules & Smart Transfer Detection
-- [ ] **Phase 8:** Financial Reports, Jalali Period Charts & Export Options
+- [x] **Phase 8:** Financial Reports, Jalali Period Charts, CSV Export & Database Backup
 
 ## License
 Private / Open Source Project.

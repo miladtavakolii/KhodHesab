@@ -1,12 +1,8 @@
 package ir.khodhesab.ui.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -17,6 +13,9 @@ import ir.khodhesab.ui.screens.categories.CategoriesViewModel
 import ir.khodhesab.ui.screens.dashboard.DashboardScreen
 import ir.khodhesab.ui.screens.dashboard.DashboardUiState
 import ir.khodhesab.ui.screens.dashboard.DashboardViewModel
+import ir.khodhesab.ui.screens.reports.ReportsScreen
+import ir.khodhesab.ui.screens.reports.ReportsUiState
+import ir.khodhesab.ui.screens.reports.ReportsViewModel
 import ir.khodhesab.ui.screens.transactions.TransactionsScreen
 import ir.khodhesab.ui.screens.transactions.TransactionsUiState
 import ir.khodhesab.ui.screens.transactions.TransactionsViewModel
@@ -31,6 +30,8 @@ fun KhodHesabNavHost(
     dashboardViewModel: DashboardViewModel,
     transactionsState: TransactionsUiState,
     transactionsViewModel: TransactionsViewModel,
+    reportsState: ReportsUiState,
+    reportsViewModel: ReportsViewModel,
     categoriesState: CategoriesUiState,
     categoriesViewModel: CategoriesViewModel,
     onTransactionClick: (Transaction) -> Unit,
@@ -72,15 +73,20 @@ fun KhodHesabNavHost(
         }
 
         composable(KhodHesabDestination.Reports.route) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "صفحه گزارش‌ها",
-                    style = MaterialTheme.typography.titleLarge
-                )
-            }
+            val context = LocalContext.current
+            ReportsScreen(
+                state = reportsState,
+                onSelectPeriod = { reportsViewModel.onSelectPeriod(it) },
+                onPreviousPeriod = { reportsViewModel.onPreviousPeriod() },
+                onNextPeriod = { reportsViewModel.onNextPeriod() },
+                onSelectAccount = { reportsViewModel.onSelectAccount(it) },
+                onSelectBreakdownKind = { reportsViewModel.onSelectBreakdownKind(it) },
+                onExportCsv = { reportsViewModel.onExportCsv(context) },
+                onCreateBackup = { reportsViewModel.onCreateBackup(context) },
+                onRestoreBackup = { uri -> reportsViewModel.onRestoreBackup(context, uri) },
+                onShareHandled = { reportsViewModel.onShareHandled() },
+                onDismissMessage = { reportsViewModel.onDismissMessage() }
+            )
         }
 
         composable(KhodHesabDestination.Categories.route) {

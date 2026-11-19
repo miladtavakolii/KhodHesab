@@ -23,6 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import ir.khodhesab.domain.model.Transaction
 import ir.khodhesab.ui.screens.categories.CategoriesViewModel
 import ir.khodhesab.ui.screens.dashboard.DashboardViewModel
+import ir.khodhesab.ui.screens.reports.ReportsViewModel
 import ir.khodhesab.ui.screens.transaction_detail.AddManualTransactionSheet
 import ir.khodhesab.ui.screens.transaction_detail.TransactionDetailViewModel
 import ir.khodhesab.ui.screens.transaction_detail.TransactionEditBottomSheet
@@ -37,6 +38,7 @@ fun MainAppScaffold(
     initialEditTransactionId: Long? = null,
     dashboardViewModel: DashboardViewModel = hiltViewModel(),
     transactionsViewModel: TransactionsViewModel = hiltViewModel(),
+    reportsViewModel: ReportsViewModel = hiltViewModel(),
     categoriesViewModel: CategoriesViewModel = hiltViewModel(),
     transactionDetailViewModel: TransactionDetailViewModel = hiltViewModel()
 ) {
@@ -46,6 +48,7 @@ fun MainAppScaffold(
 
     val dashboardState by dashboardViewModel.uiState.collectAsState()
     val transactionsState by transactionsViewModel.uiState.collectAsState()
+    val reportsState by reportsViewModel.uiState.collectAsState()
     val categoriesState by categoriesViewModel.uiState.collectAsState()
     val detailState by transactionDetailViewModel.uiState.collectAsState()
 
@@ -113,6 +116,8 @@ fun MainAppScaffold(
             dashboardViewModel = dashboardViewModel,
             transactionsState = transactionsState,
             transactionsViewModel = transactionsViewModel,
+            reportsState = reportsState,
+            reportsViewModel = reportsViewModel,
             categoriesState = categoriesState,
             categoriesViewModel = categoriesViewModel,
             onTransactionClick = { tx ->
