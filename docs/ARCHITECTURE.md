@@ -196,6 +196,32 @@ flowchart TD
   - `EmptyStateView`: Illustration, message, and action callout.
   - `CurrencyToggleChip`: Interactive pill switch for Toman/Rial toggle.
 
+## Core Screens & MVI/MVVM StateFlow Architecture
+
+```mermaid
+flowchart TD
+    VM1[DashboardViewModel] -->|DashboardUiState| Screen1[DashboardScreen]
+    VM2[TransactionsViewModel] -->|TransactionsUiState| Screen2[TransactionsScreen]
+    VM3[TransactionDetailViewModel] -->|TransactionDetailUiState| Sheet[TransactionEditBottomSheet]
+
+    Screen1 -- Tap Account / Sync SMS --> Action1[User Actions & Intent Handlers]
+    Screen2 -- Search / Filter Chips --> Action2[Multi-Criteria Filters]
+    Sheet -- Categorize / Note / Delete --> Action3[UpdateTransactionUseCase]
+```
+
+### Screen Responsibilities & Flow
+1. **`DashboardScreen`**:
+   - Accounts Carousel (`BankAccountCard`) with `"همه حساب‌ها"` (All Accounts) selection and long-press account renaming.
+   - SMS Sync Banner: Prompts historical SMS scanning or renders a progress bar during import.
+   - Monthly Cash Flow Summary: Renders `FinancialSummaryRow`.
+   - Recent Transactions list & FAB (`+`) for adding manual transactions.
+2. **`TransactionsScreen`**:
+   - Search bar (`OutlinedTextField`) matching transaction note or raw bank SMS text.
+   - Filter Chips: Quick filter `"دسته‌بندی نشده"` (Uncategorized), transaction kinds (`DEPOSIT`, `WITHDRAWAL`, `TRANSFER`), and individual account chips.
+3. **`TransactionEditBottomSheet`**:
+   - Modal BottomSheet accessible globally from any screen or notification deep-link intent (`ACTION_EDIT_TRANSACTION`).
+   - One-tap category grid selection, transaction kind switcher, user description notes, and raw bank SMS body viewer.
+
 ## Testing & Commit Standards
 - **Testing:** 100% unit test coverage required for core logic and domain use cases. Run `./gradlew testDebugUnitTest`.
 - **Commits:** Conventional Commits standard (`feat:`, `chore:`, `test:`, `docs:`).

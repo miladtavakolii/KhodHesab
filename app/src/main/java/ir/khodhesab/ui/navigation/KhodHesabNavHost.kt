@@ -10,15 +10,27 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import ir.khodhesab.domain.model.Transaction
+import ir.khodhesab.ui.screens.dashboard.DashboardScreen
+import ir.khodhesab.ui.screens.dashboard.DashboardUiState
+import ir.khodhesab.ui.screens.dashboard.DashboardViewModel
+import ir.khodhesab.ui.screens.transactions.TransactionsScreen
+import ir.khodhesab.ui.screens.transactions.TransactionsUiState
+import ir.khodhesab.ui.screens.transactions.TransactionsViewModel
 
 /**
- * Navigation Host component for KhodHesab app.
+ * Navigation Host component for KhodHesab app hosting Dashboard, Transactions, Reports, and Categories screens.
  */
 @Composable
 fun KhodHesabNavHost(
     navController: NavHostController,
-    modifier: Modifier = Modifier,
-    initialEditTransactionId: Long? = null
+    dashboardState: DashboardUiState,
+    dashboardViewModel: DashboardViewModel,
+    transactionsState: TransactionsUiState,
+    transactionsViewModel: TransactionsViewModel,
+    onTransactionClick: (Transaction) -> Unit,
+    onAddManualTransactionClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     NavHost(
         navController = navController,
@@ -26,32 +38,32 @@ fun KhodHesabNavHost(
         modifier = modifier
     ) {
         composable(KhodHesabDestination.Dashboard.route) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "صفحه خانه (داشبورد)",
-                    style = MaterialTheme.typography.titleLarge
-                )
-            }
+            DashboardScreen(
+                state = dashboardState,
+                onSelectAccount = { dashboardViewModel.onSelectAccount(it) },
+                onToggleCurrencyUnit = { dashboardViewModel.onToggleCurrencyUnit() },
+                onStartHistoricalSmsSync = { dashboardViewModel.onStartHistoricalSmsSync() },
+                onDismissSyncMessage = { dashboardViewModel.onDismissSyncMessage() },
+                onRenameAccount = { id, title -> dashboardViewModel.onRenameAccount(id, title) },
+                onToggleAccountActive = { id, active -> dashboardViewModel.onToggleAccountActive(id, active) },
+                onTransactionClick = onTransactionClick,
+                onNavigateToTransactions = {
+                    navController.navigate(KhodHesabDestination.Transactions.route)
+                },
+                onAddManualTransactionClick = onAddManualTransactionClick
+            )
         }
 
         composable(KhodHesabDestination.Transactions.route) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                val text = if (initialEditTransactionId != null) {
-                    "ویرایش تراکنش #$initialEditTransactionId"
-                } else {
-                    "صفحه تراکنش‌ها"
-                }
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.titleLarge
-                )
-            }
+            TransactionsScreen(
+                state = transactionsState,
+                onSearchQueryChange = { transactionsViewModel.onSearchQueryChange(it) },
+                onAccountFilterChange = { transactionsViewModel.onAccountFilterChange(it) },
+                onKindFilterChange = { transactionsViewModel.onKindFilterChange(it) },
+                onToggleUncategorizedOnly = { transactionsViewModel.onToggleUncategorizedOnly() },
+                onClearFilters = { transactionsViewModel.onClearFilters() },
+                onTransactionClick = onTransactionClick
+            )
         }
 
         composable(KhodHesabDestination.Reports.route) {
