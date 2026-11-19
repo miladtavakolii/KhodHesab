@@ -3,12 +3,15 @@ package ir.khodhesab.ui.util
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Flight
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.LocalHospital
+import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Restaurant
@@ -19,44 +22,65 @@ import androidx.compose.material.icons.filled.Work
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 
+data class SelectableCategoryIcon(
+    val key: String,
+    val label: String,
+    val icon: ImageVector
+)
+
 /**
  * Helper utility mapping category and bank icon keys to Material [ImageVector] icons and parsing Hex colors safely.
  */
 object CategoryIconMapper {
 
-    /**
-     * Maps an icon key string to its corresponding [ImageVector].
-     *
-     * @param iconKey Key string (e.g. `"ic_cat_food"`, `"ic_cat_transport"`).
-     * @return Corresponding Material [ImageVector].
-     */
+    val AVAILABLE_ICONS = listOf(
+        SelectableCategoryIcon("ic_cat_food", "غذا و رستوران", Icons.Default.Restaurant),
+        SelectableCategoryIcon("ic_cat_transport", "حمل و نقل", Icons.Default.DirectionsCar),
+        SelectableCategoryIcon("ic_cat_shopping", "خرید و پوشاک", Icons.Default.ShoppingBag),
+        SelectableCategoryIcon("ic_cat_bills", "قبوض و شارژ", Icons.Default.Receipt),
+        SelectableCategoryIcon("ic_cat_housing", "مسکن و اجاره", Icons.Default.Home),
+        SelectableCategoryIcon("ic_cat_health", "درمان و سلامت", Icons.Default.LocalHospital),
+        SelectableCategoryIcon("ic_cat_leisure", "تفریح و سفر", Icons.Default.Flight),
+        SelectableCategoryIcon("ic_cat_education", "آموزش و کتاب", Icons.Default.School),
+        SelectableCategoryIcon("ic_cat_bank_fee", "کارمزد بانکی", Icons.Default.AccountBalance),
+        SelectableCategoryIcon("ic_cat_salary", "حقوق و دستمزد", Icons.Default.Payments),
+        SelectableCategoryIcon("ic_cat_business", "کسب‌وکار", Icons.Default.Work),
+        SelectableCategoryIcon("ic_cat_investment", "سرمایه‌گذاری", Icons.Default.AttachMoney),
+        SelectableCategoryIcon("ic_cat_subsidy", "یارانه", Icons.Default.Lightbulb),
+        SelectableCategoryIcon("ic_cat_refund", "بازگشت وجه", Icons.Default.Store),
+        SelectableCategoryIcon("ic_cat_gift", "هدیه", Icons.Default.CardGiftcard),
+        SelectableCategoryIcon("ic_cat_sports", "ورزش", Icons.Default.FitnessCenter),
+        SelectableCategoryIcon("ic_cat_cinema", "سینما و هنر", Icons.Default.Movie),
+        SelectableCategoryIcon("ic_cat_other", "سایر", Icons.Default.Category)
+    )
+
+    val SELECTABLE_COLORS = listOf(
+        "#FF5722", "#FF9800", "#E91E63", "#9C27B0", "#795548",
+        "#F44336", "#00BCD4", "#3F51B5", "#607D8B", "#4CAF50",
+        "#2196F3", "#009688"
+    )
+
     fun getIcon(iconKey: String?): ImageVector {
-        return when (iconKey?.lowercase()?.trim()) {
-            "ic_cat_food", "food" -> Icons.Default.Restaurant
-            "ic_cat_transport", "transport" -> Icons.Default.DirectionsCar
-            "ic_cat_shopping", "shopping" -> Icons.Default.ShoppingBag
-            "ic_cat_bills", "bills" -> Icons.Default.Receipt
-            "ic_cat_housing", "housing" -> Icons.Default.Home
-            "ic_cat_health", "health" -> Icons.Default.LocalHospital
-            "ic_cat_leisure", "leisure" -> Icons.Default.Flight
-            "ic_cat_education", "education" -> Icons.Default.School
-            "ic_cat_bank_fee", "bank_fee" -> Icons.Default.AccountBalance
-            "ic_cat_salary", "salary" -> Icons.Default.Payments
-            "ic_cat_business", "business" -> Icons.Default.Work
-            "ic_cat_investment", "investment" -> Icons.Default.AttachMoney
-            "ic_cat_subsidy", "subsidy" -> Icons.Default.Lightbulb
-            "ic_cat_refund", "refund" -> Icons.Default.Store
-            else -> Icons.Default.Category
-        }
+        return AVAILABLE_ICONS.find { it.key.equals(iconKey, ignoreCase = true) }?.icon
+            ?: when (iconKey?.lowercase()?.trim()) {
+                "food" -> Icons.Default.Restaurant
+                "transport" -> Icons.Default.DirectionsCar
+                "shopping" -> Icons.Default.ShoppingBag
+                "bills" -> Icons.Default.Receipt
+                "housing" -> Icons.Default.Home
+                "health" -> Icons.Default.LocalHospital
+                "leisure" -> Icons.Default.Flight
+                "education" -> Icons.Default.School
+                "bank_fee" -> Icons.Default.AccountBalance
+                "salary" -> Icons.Default.Payments
+                "business" -> Icons.Default.Work
+                "investment" -> Icons.Default.AttachMoney
+                "subsidy" -> Icons.Default.Lightbulb
+                "refund" -> Icons.Default.Store
+                else -> Icons.Default.Category
+            }
     }
 
-    /**
-     * Safely parses a hex color string into a Compose [Color].
-     *
-     * @param hex Hex string (e.g. `"#FF5722"` or `"FF5722"`).
-     * @param fallback Fallback [Color] if parsing fails.
-     * @return Parsed [Color].
-     */
     fun parseHexColor(hex: String?, fallback: Color = Color(0xFF607D8B)): Color {
         if (hex.isNullOrBlank()) return fallback
         return try {
