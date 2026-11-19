@@ -1,17 +1,14 @@
 package ir.khodhesab
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.mutableStateOf
 import dagger.hilt.android.AndroidEntryPoint
+import ir.khodhesab.sms_engine.notification.TransactionNotificationManager
+import ir.khodhesab.ui.navigation.MainAppScaffold
 import ir.khodhesab.ui.theme.KhodHesabTheme
 
 /**
@@ -19,34 +16,36 @@ import ir.khodhesab.ui.theme.KhodHesabTheme
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    private val editTransactionIdState = mutableStateOf<Long?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        handleDeepLinkIntent(intent)
+
         setContent {
             KhodHesabTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "KhodHesab",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                MainAppScaffold(
+                    initialEditTransactionId = editTransactionIdState.value
+                )
             }
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Welcome to $name!",
-        modifier = modifier
-    )
-}
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleDeepLinkIntent(intent)
+    }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    KhodHesabTheme {
-        Greeting("KhodHesab")
+    private fun handleDeepLinkIntent(intent: Intent?) {
+        if (intent?.action == TransactionNotificationManager.ACTION_EDIT_TRANSACTION) {
+            val txId = intent.getLongExtra(TransactionNotificationManager.EXTRA_TRANSACTION_ID, -1L)
+            if (txId > 0L) {
+                editTransactionIdState.value = txId
+            }
+        }
     }
 }

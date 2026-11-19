@@ -171,6 +171,31 @@ flowchart TD
 - Sideloaded APKs on Android 13+ (API 33+) may restrict SMS receiver accessibility.
 - `SmsPermissionHelper` provides helper functions (`createAppSettingsIntent`) to direct users to **App Details Settings** to enable *"Allow restricted settings"*.
 
+## UI Layer Architecture, RTL Theme & Reusable Components
+
+```
+[ MainActivity ]
+       │
+       ▼
+[ KhodHesabTheme ] ── (CompositionLocalProvider: LocalLayoutDirection -> LayoutDirection.Rtl)
+       │
+       ▼
+[ MainAppScaffold ] ── (NavigationBar: Dashboard, Transactions, Reports, Categories)
+       │
+       ▼
+[ KhodHesabNavHost ]
+```
+
+### Design System Highlights
+- **Enforced RTL Layout:** Entire UI composition is wrapped inside `CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl)`.
+- **Persian Currency Formatting (`PersianCurrencyFormatter`):** Converts raw database Rials into Persian-digit formatted strings (`۰-۹`) and handles user preferred display unit (`CurrencyUnit.TOMAN` or `CurrencyUnit.RIAL`) via DataStore (`AppPreferencesRepository`).
+- **Reusable Core Components:**
+  - `BankAccountCard`: Account card with bank accent stripe, custom title, and formatted balance.
+  - `TransactionListItem`: Transaction item with category colored badge, Jalali date, bank info, and signed color-coded amount.
+  - `FinancialSummaryRow`: Stat cards for Total Income (واریز), Total Expense (برداشت), and Net Balance.
+  - `EmptyStateView`: Illustration, message, and action callout.
+  - `CurrencyToggleChip`: Interactive pill switch for Toman/Rial toggle.
+
 ## Testing & Commit Standards
 - **Testing:** 100% unit test coverage required for core logic and domain use cases. Run `./gradlew testDebugUnitTest`.
 - **Commits:** Conventional Commits standard (`feat:`, `chore:`, `test:`, `docs:`).
