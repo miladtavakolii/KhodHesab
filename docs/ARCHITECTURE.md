@@ -149,6 +149,28 @@ To add support for a new bank or custom SMS format:
 2. Define `supportedBankCodes` with the bank code (e.g. `setOf("MY_BANK")`).
 3. Bind the strategy in `SmsEngineModule` using `@IntoSet`.
 
+## Android Background SMS Processing & Sync Pipeline
+
+```mermaid
+flowchart TD
+    SMS[Incoming SMS Intent] --> Receiver[IncomingSmsReceiver]
+    Receiver --> MultiPart{Group PDUs by Sender}
+    MultiPart --> Reassembled[Reassembled Long Text]
+    Reassembled --> WorkManager[ProcessIncomingSmsWorker]
+    WorkManager --> Coordinator[SmsProcessingCoordinator]
+    Coordinator --> Success{RecordSmsResult.Inserted}
+    Success -- Show Notification --> NotifMgr[TransactionNotificationManager]
+    NotifMgr -- Tap Notification --> IntentDeepLink[MainActivity + ACTION_EDIT_TRANSACTION]
+```
+
+### Historical Inbox Import (`OldSmsImporter`)
+- **Chronological Sorting (`DATE ASC`):** Inbox messages are scanned in ascending chronological order (`DATE ASC`). This guarantees that account balances and transaction histories are calculated in true chronological sequence, ensuring `lastBalanceUpdate` reflects the latest transaction state accurately.
+- **Progress Flow:** Emits `SmsImportProgress` containing progress fractions and detailed counts (`recordedCount`, `duplicateCount`, `ignoredOrUnrecognizedCount`).
+
+### Android 13+ Restricted Settings & Permissions
+- Sideloaded APKs on Android 13+ (API 33+) may restrict SMS receiver accessibility.
+- `SmsPermissionHelper` provides helper functions (`createAppSettingsIntent`) to direct users to **App Details Settings** to enable *"Allow restricted settings"*.
+
 ## Testing & Commit Standards
 - **Testing:** 100% unit test coverage required for core logic and domain use cases. Run `./gradlew testDebugUnitTest`.
 - **Commits:** Conventional Commits standard (`feat:`, `chore:`, `test:`, `docs:`).
