@@ -34,7 +34,8 @@ class IranianBankSmsTemplatesTest {
             BluSamanPasargadStrategy(),
             TejaratSaderatKeshavarziSepahStrategy()
         )
-        parserEngine = BankSmsParserEngine(nonFinancialFilter, bankDetector, strategies)
+        val scoredSmsExtractor = ScoredSmsExtractor()
+        parserEngine = BankSmsParserEngine(nonFinancialFilter, bankDetector, strategies, scoredSmsExtractor)
     }
 
     private fun setupMockBank(code: String, sender: String) {

@@ -9,13 +9,15 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Core engine orchestrating SMS filtering, bank detection, and regex strategy parsing.
+ * Core engine orchestrating SMS filtering, bank detection, regex strategy parsing,
+ * and context-window scoring fallback.
  */
 @Singleton
 class BankSmsParserEngine @Inject constructor(
     private val nonFinancialFilter: NonFinancialSmsFilter,
     private val bankDetector: BankDetector,
-    private val strategies: Set<@JvmSuppressWildcards BankParserStrategy>
+    private val strategies: Set<@JvmSuppressWildcards BankParserStrategy>,
+    private val scoredSmsExtractor: ScoredSmsExtractor
 ) {
 
     private val fallbackStrategy = GenericIranianBankStrategy()
@@ -40,6 +42,7 @@ class BankSmsParserEngine @Inject constructor(
         val strategy = strategies.find { it.supportedBankCodes.contains(bank.code) } ?: fallbackStrategy
 
         val parsedData = strategy.parse(normalizedBody, rawSms, bank.code)
+            ?: scoredSmsExtractor.parse(bank.code, normalizedBody, rawSms)
             ?: return SmsParseOutcome.ParseFailed(bank.code, "امکان استخراج اطلاعات تراکنش از متن پیامک وجود نداشت.")
 
         return SmsParseOutcome.Success(parsedData)
