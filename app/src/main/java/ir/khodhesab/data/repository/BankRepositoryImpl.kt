@@ -41,6 +41,32 @@ class BankRepositoryImpl @Inject constructor(
             cleanSender
         }
 
-        return bankDao.findBankBySenderNumber(altSender)?.toDomain()
+        val altMatch = bankDao.findBankBySenderNumber(altSender)
+        if (altMatch != null) return altMatch.toDomain()
+
+        val canonical = PersianTextNormalizer.canonicalSender(senderNumber)
+        if (canonical.isEmpty()) return null
+
+        val allBanks = bankDao.getAllBanksList().map { it.toDomain() }
+
+        for (bank in allBanks) {
+            for (num in bank.senderNumbers) {
+                val canonNum = PersianTextNormalizer.canonicalSender(num)
+                if (canonNum == canonical) {
+                    return bank
+                }
+            }
+        }
+
+        for (bank in allBanks) {
+            for (num in bank.senderNumbers) {
+                val canonNum = PersianTextNormalizer.canonicalSender(num)
+                if (canonNum.isNotEmpty() && (canonical.startsWith(canonNum) || canonNum.startsWith(canonical))) {
+                    return bank
+                }
+            }
+        }
+
+        return null
     }
 }

@@ -35,6 +35,15 @@ class NonFinancialSmsFilterTest {
     }
 
     @Test
+    fun checkNonFinancial_rejectsFailedTransactionNotices() {
+        val failedBody = "تراکنش برداشت 500,000 ریال ناموفق بود."
+        val result = filter.checkNonFinancial(failedBody)
+
+        assertThat(result).isNotNull()
+        assertThat(result).contains("ناموفق")
+    }
+
+    @Test
     fun checkNonFinancial_acceptsValidTransactionMessage() {
         val txBody = "برداشت از حساب 123456\nمبلغ: 2,500,000 ریال\nمانده: 14,000,000 ریال"
         val result = filter.checkNonFinancial(txBody)

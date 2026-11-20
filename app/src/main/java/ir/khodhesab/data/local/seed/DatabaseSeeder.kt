@@ -10,7 +10,7 @@ import ir.khodhesab.data.local.model.TransactionType
 object DatabaseSeeder {
 
     /**
-     * Initial list of major Iranian banks with shortcodes, hex colors, and icon keys.
+     * Initial list of major Iranian banks with shortcodes, hex colors, and icon keys, plus fallback "OTHER".
      */
     val DEFAULT_BANKS = listOf(
         BankEntity(code = "MELLI", persianName = "بانک ملی ایران", senderNumbers = listOf("9611", "+989611", "BANK MELLI"), colorHex = "#1E88E5", iconKey = "ic_bank_melli"),
@@ -30,14 +30,14 @@ object DatabaseSeeder {
         BankEntity(code = "MASKAN", persianName = "بانک مسکن", senderNumbers = listOf("300010", "MASKAN"), colorHex = "#FB8C00", iconKey = "ic_bank_maskan"),
         BankEntity(code = "BLU", persianName = "بلوبانک", senderNumbers = listOf("10008000", "BLU BANK", "blubank"), colorHex = "#0052CC", iconKey = "ic_bank_blu"),
         BankEntity(code = "RESALAT", persianName = "بانک قرض‌الحسنه رسالت", senderNumbers = listOf("20004747", "RESALAT"), colorHex = "#00796B", iconKey = "ic_bank_resalat"),
-        BankEntity(code = "MEHR_IRAN", persianName = "بانک قرض‌الحسنه مهر ایران", senderNumbers = listOf("30008585", "MEHR BANK"), colorHex = "#388E3C", iconKey = "ic_bank_mehr")
+        BankEntity(code = "MEHR_IRAN", persianName = "بانک قرض‌الحسنه مهر ایران", senderNumbers = listOf("30008585", "MEHR BANK"), colorHex = "#388E3C", iconKey = "ic_bank_mehr"),
+        BankEntity(code = "OTHER", persianName = "سایر بانک‌ها", senderNumbers = emptyList(), colorHex = "#546E7A", iconKey = "ic_bank_other")
     )
 
     /**
      * Initial list of default expense and income categories.
      */
     val DEFAULT_CATEGORIES = listOf(
-        // Withdrawal / Expense categories
         CategoryEntity(name = "خوراک و رستوران", type = TransactionType.WITHDRAWAL, iconKey = "ic_cat_food", colorHex = "#FF5722", isDefault = true, keywords = listOf("رستوران", "سوپرمارکت", "هایپر", "فروشگاه", "نانوایی", "کافه", "فست فود")),
         CategoryEntity(name = "حمل‌ونقل و سوخت", type = TransactionType.WITHDRAWAL, iconKey = "ic_cat_transport", colorHex = "#FF9800", isDefault = true, keywords = listOf("اسنپ", "تپسی", "بنزین", "پمپ بنزین", "مترو", "تاکسی", "پارکینگ")),
         CategoryEntity(name = "خرید و پوشاک", type = TransactionType.WITHDRAWAL, iconKey = "ic_cat_shopping", colorHex = "#E91E63", isDefault = true, keywords = listOf("پوشاک", "لباس", "کفش", "کیف", "فروشگاه", "پاساژ")),
@@ -48,8 +48,6 @@ object DatabaseSeeder {
         CategoryEntity(name = "آموزش و کتاب", type = TransactionType.WITHDRAWAL, iconKey = "ic_cat_education", colorHex = "#3F51B5", isDefault = true, keywords = listOf("کتاب", "دانشگاه", "مدرسه", "آموزشگاه", "دوره")),
         CategoryEntity(name = "کارمزد و خدمات بانکی", type = TransactionType.WITHDRAWAL, iconKey = "ic_cat_bank_fee", colorHex = "#607D8B", isDefault = true, keywords = listOf("کارمزد", "پایا", "ساتنا", "شتاب")),
         CategoryEntity(name = "سایر هزینه‌ها", type = TransactionType.WITHDRAWAL, iconKey = "ic_cat_other_exp", colorHex = "#9E9E9E", isDefault = true, keywords = emptyList()),
-
-        // Deposit / Income categories
         CategoryEntity(name = "حقوق و دستمزد", type = TransactionType.DEPOSIT, iconKey = "ic_cat_salary", colorHex = "#4CAF50", isDefault = true, keywords = listOf("حقوق", "دستمزد", "پاداش", "عیدی", "مزایا")),
         CategoryEntity(name = "کسب‌وکار و فروش", type = TransactionType.DEPOSIT, iconKey = "ic_cat_business", colorHex = "#2196F3", isDefault = true, keywords = listOf("فروش", "درآمد", "واریز مشتری")),
         CategoryEntity(name = "سود بانکی و سرمایه‌گذاری", type = TransactionType.DEPOSIT, iconKey = "ic_cat_investment", colorHex = "#009688", isDefault = true, keywords = listOf("سود", "سرمایه", "بورس", "صندوق")),

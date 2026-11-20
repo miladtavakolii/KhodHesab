@@ -9,9 +9,11 @@ import javax.inject.Singleton
 /**
  * Detector responsible for resolving an SMS message to an Iranian [Bank] domain entity.
  *
- * Utilizes dual-stage detection:
- * 1. Sender shortcode/phone matching via [BankRepository.findBankBySender].
- * 2. Keyword fallback matching on normalized SMS body for generic shortcodes (`1000...`, `2000...`, etc.).
+ * Utilizes multi-stage detection with fallback:
+ * 1. Canonical sender number / shortcode matching via [BankRepository.findBankBySender].
+ * 2. Keyword fallback matching on normalized SMS body.
+ * 3. Alphanumeric sender ID matching.
+ * 4. Fallback to "OTHER" bank entity so valid transactions are never discarded.
  */
 @Singleton
 class BankDetector @Inject constructor(
@@ -41,10 +43,6 @@ class BankDetector @Inject constructor(
 
     /**
      * Detects and resolves the [Bank] associated with the given raw SMS sender and body.
-     *
-     * @param sender Sender number or header.
-     * @param body Raw or normalized SMS text.
-     * @return Resolved [Bank] entity or `null` if unrecognized.
      */
     suspend fun detectBank(sender: String, body: String): Bank? {
         val senderMatch = bankRepository.findBankBySender(sender)
@@ -61,6 +59,18 @@ class BankDetector @Inject constructor(
             }
         }
 
-        return null
+        val canonicalSender = PersianTextNormalizer.canonicalSender(sender)
+        for ((code, keywords) in bankKeywordMap) {
+            for (keyword in keywords) {
+                val canonKw = PersianTextNormalizer.canonicalSender(keyword)
+                if (canonKw.length >= 3 && canonicalSender.contains(canonKw, ignoreCase = true)) {
+                    val bankByCode = bankRepository.getBankByCode(code)
+                    if (bankByCode != null) return bankByCode
+                }
+            }
+        }
+
+        return bankRepository.getBankByCode("OTHER")
+            ?: Bank(id = 9999, code = "OTHER", persianName = "سایر بانک‌ها", colorHex = "#546E7A", iconKey = "ic_bank_other")
     }
 }

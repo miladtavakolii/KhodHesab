@@ -17,8 +17,11 @@ class BankDetectorTest {
     private val bankRepository: BankRepository = mockk()
     private lateinit var detector: BankDetector
 
+    private val otherBank = Bank(id = 99, code = "OTHER", persianName = "سایر بانک‌ها", colorHex = "#5", iconKey = "i")
+
     @Before
     fun setup() {
+        coEvery { bankRepository.getBankByCode("OTHER") } returns otherBank
         detector = BankDetector(bankRepository)
     }
 
@@ -39,5 +42,13 @@ class BankDetectorTest {
 
         val detected = detector.detectBank("2000000", "بانک ملت\nبرداشت 25000")
         assertThat(detected?.code).isEqualTo("MELLAT")
+    }
+
+    @Test
+    fun detectBank_fallsBackToOtherBankWhenNoMatch() = runTest {
+        coEvery { bankRepository.findBankBySender("99999") } returns null
+
+        val detected = detector.detectBank("99999", "برداشت 25000 ریال")
+        assertThat(detected?.code).isEqualTo("OTHER")
     }
 }

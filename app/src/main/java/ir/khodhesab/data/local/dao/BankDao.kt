@@ -32,6 +32,12 @@ interface BankDao {
     fun getAllBanks(): Flow<List<BankEntity>>
 
     /**
+     * Retrieves a direct synchronous list of all banks.
+     */
+    @Query("SELECT * FROM banks ORDER BY persianName ASC")
+    suspend fun getAllBanksList(): List<BankEntity>
+
+    /**
      * Finds a bank by its primary key ID.
      */
     @Query("SELECT * FROM banks WHERE id = :bankId LIMIT 1")

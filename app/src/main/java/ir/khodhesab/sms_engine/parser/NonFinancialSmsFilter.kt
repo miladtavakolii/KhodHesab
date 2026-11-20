@@ -5,7 +5,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Filter utility to identify and reject non-financial SMS messages (OTP passwords, login alerts, promos).
+ * Filter utility to identify and reject non-financial SMS messages (OTP passwords, login alerts, promos, failed notices).
  */
 @Singleton
 class NonFinancialSmsFilter @Inject constructor() {
@@ -19,6 +19,10 @@ class NonFinancialSmsFilter @Inject constructor() {
     private val securityAlertKeywords = listOf(
         "ورود به همراه بانک", "ورود به همراهبانک", "ورود به اینترنت بانک",
         "تغییر رمز", "مسدود گردید", "مسدود شد", "غیرفعال گردید"
+    )
+
+    private val failedTransactionKeywords = listOf(
+        "ناموفق", "لغو تراکنش", "خطا در تراکنش", "موجودی کافی نیست", "مانده کافی نیست"
     )
 
     private val transactionKeywords = listOf(
@@ -35,7 +39,6 @@ class NonFinancialSmsFilter @Inject constructor() {
     fun checkNonFinancial(body: String): String? {
         val normalized = PersianTextNormalizer.normalize(body)
 
-        // 1. Check OTP keywords
         for (keyword in otpKeywords) {
             val normalizedKeyword = PersianTextNormalizer.normalize(keyword)
             if (normalized.contains(normalizedKeyword, ignoreCase = true)) {
@@ -43,7 +46,6 @@ class NonFinancialSmsFilter @Inject constructor() {
             }
         }
 
-        // 2. Check Security / Login alerts without financial amount
         for (keyword in securityAlertKeywords) {
             val normalizedKeyword = PersianTextNormalizer.normalize(keyword)
             if (normalized.contains(normalizedKeyword, ignoreCase = true)) {
@@ -51,7 +53,13 @@ class NonFinancialSmsFilter @Inject constructor() {
             }
         }
 
-        // 3. Ensure at least one transaction keyword exists
+        for (keyword in failedTransactionKeywords) {
+            val normalizedKeyword = PersianTextNormalizer.normalize(keyword)
+            if (normalized.contains(normalizedKeyword, ignoreCase = true)) {
+                return "پیامک تراکنش ناموفق / عدم موجودی است ($keyword)."
+            }
+        }
+
         val hasTransactionKeyword = transactionKeywords.any {
             normalized.contains(PersianTextNormalizer.normalize(it), ignoreCase = true)
         }
@@ -59,7 +67,6 @@ class NonFinancialSmsFilter @Inject constructor() {
             return "پیامک فاقد کلیدواژه‌های تراکنش مالی است."
         }
 
-        // 4. Ensure at least one number sequence exists
         val amount = PersianTextNormalizer.extractAmount(normalized)
         if (amount == null) {
             return "پیامک فاقد مبلغ عددی است."
