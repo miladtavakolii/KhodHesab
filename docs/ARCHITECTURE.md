@@ -27,11 +27,11 @@ KhodHesab is an offline-first, privacy-focused SMS personal accounting Android a
 ## Core Utilities Usage
 
 ### 1. Persian Text Normalizer (`PersianTextNormalizer`)
-Normalizes Persian/Arabic characters, converts Persian & Arabic digits (`۰-۹`, `٠-٩`) to English digits (`0-9`), cleans thousand separators (`1,250,000`), and extracts clean `Long` financial amounts.
+Normalizes Persian/Arabic characters, converts Persian & Arabic digits (`۰-۹`, `٠-٩`) to English digits (`0-9`), strips invisible Unicode control characters (`\u200E`, `\u200F`, `\uFEFF`), unifies separators, converts dot-separated thousands (`1.500.000` -> `1,500,000`), canonicalizes senders (`canonicalSender`), and extracts clean `Long` financial amounts.
 
 ```kotlin
-val normalizedText = PersianTextNormalizer.normalize("بانك ملي\r\nمبلغ: ۱,۲۵۰,۰۰۰ ريال")
-val amount = PersianTextNormalizer.extractAmount("۱,۲۵۰,۰۰۰ ریال") // 1250000L
+val normalizedText = PersianTextNormalizer.normalize("بانك ملي\r\nمبلغ: ۱.۵۰۰.۰۰۰ ريال")
+val canonicalSender = PersianTextNormalizer.canonicalSender("+98 2000 1234") // "20001234"
 ```
 
 ### 2. Jalali Calendar Helper (`JalaliCalendarHelper`)
@@ -105,7 +105,7 @@ erDiagram
 - **Composite Unique Index:** `(bankId, accountIdentifier)` on `accounts` table ensures unique user accounts under each bank.
 - **SMS Deduplication:** Unique SHA-256 hash index `smsHash` on `transactions` table ignores duplicate SMS message imports.
 - **Balance Concurrency Control:** `updateBalanceIfNewer` query ensures older out-of-order SMS imports do not overwrite a newer known balance.
-- **Pre-seeded Initial Data:** 18 major Iranian banks (Melli, Mellat, Blu, etc.) and 16 default categories populated on database creation via `DatabaseSeeder`.
+- **Pre-seeded Initial Data:** 18 major Iranian banks (Melli, Mellat, Blu, etc.) + fallback "OTHER" bank and 16 default categories populated on database creation via `DatabaseSeeder`.
 
 ## Domain Layer Architecture & Business UseCases
 
@@ -122,32 +122,28 @@ The domain layer is 100% pure Kotlin (`ir.khodhesab.domain`), completely decoupl
 - **Transfer Exclusion:** Transactions classified as `TransactionKind.TRANSFER` are excluded from income/expense financial reporting calculations to prevent double-counting internal funds transfers.
 - **Percentage Distribution:** Category breakdown percentages are calculated safely (`totalPeriodAmount > 0`) to prevent division-by-zero runtime exceptions.
 
-## SMS Parsing Engine Architecture & Strategy Pipeline
+## Resilient Context-Window Token Scoring SMS Engine (ForApp Port)
 
 ```mermaid
 flowchart TD
-    RawSMS[Raw SMS Message] --> Filter{NonFinancialSmsFilter}
-    Filter -- OTP / Login Alert --> Ignored[IgnoredNonFinancial]
-    Filter -- Valid Candidate --> Normalizer[PersianTextNormalizer]
-    Normalizer --> Detector{BankDetector}
-    Detector -- Sender / Keyword Match --> Strategy{BankParserStrategy}
-    Detector -- Unrecognized Sender --> Unrecognized[UnrecognizedBank]
-    Strategy -- Bank Specific / Generic --> Extractor[BaseRegexExtractor]
-    Extractor --> Hasher[SmsHashGenerator]
-    Hasher --> Success[ParsedSmsData]
-    Success --> Coordinator[SmsProcessingCoordinator]
-    Coordinator --> UseCase[RecordSmsTransactionUseCase]
+    RawSMS[Raw SMS] --> Clean[PersianTextNormalizer: Unicode Control Strip & Canonical Sender]
+    Clean --> Filter{NonFinancialSmsFilter}
+    Filter -- OTP / Failed / Insufficient Balance --> Ignored[IgnoredNonFinancial]
+    Filter -- Valid SMS --> Detector[BankDetector: Canonical Sender + Alphanumeric + OTHER Fallback]
+    Detector --> Strategy[Bank Specific Strategy / ScoredSmsExtractor]
+    Strategy --> Scored[ScoredSmsExtractor: Adjacent-Character Filter + Proximity Scoring]
+    Scored --> Success[ParsedSmsData]
 ```
 
-### Supported Iranian Banks (18+)
-- **State & Commercial Banks:** بانک ملی، بانک ملت، بانک صادرات، بانک تجارت، بانک کشاورزی، بانک سپه، بانک مسکن، بانک رفاه کارگران.
-- **Private & Neobanks:** بلوبانک، بانک سامان، بانک پاسارگاد، بانک پارسیان، بانک اقتصاد نوین، بانک شهر، بانک دی، بانک سینا، بانک قرض‌الحسنه رسالت، بانک قرض‌الحسنه مهر ایران.
-
-### Adding New Bank Parsing Strategies
-To add support for a new bank or custom SMS format:
-1. Implement `BankParserStrategy` in `ir.khodhesab.sms_engine.parser.strategy.banks`.
-2. Define `supportedBankCodes` with the bank code (e.g. `setOf("MY_BANK")`).
-3. Bind the strategy in `SmsEngineModule` using `@IntoSet`.
+### Context-Window Scoring Rules
+1. **Candidate Filtering:** Matches numeric patterns `\d{1,3}(?:,\d{3})+|\d{4,}` and excludes dates (`/`), times (`:`), masked cards (`*`), hyphenated accounts (`-`), and Sheba IDs (`len > 12`).
+2. **Context Scoring:** Evaluates 25 characters preceding and 12 characters trailing each number:
+   - Balance keywords (`مانده`, `موجودی`) -> `score -= 10` (saved as balance candidate).
+   - Account keywords without amount context -> `score -= 4`.
+   - Amount / action keywords (`مبلغ`, `واریز`, `برداشت`, `خرید`, `پرداخت`) -> `score += 4` to `+5`.
+   - Adjacent `+` / `-` sign -> `score += 3` to `+4`.
+   - Toman unit (`تومان`) -> `score += 2` (multiplies amount by 10 for Rials).
+3. **Fallback Bank (`"OTHER"`):** Ensures no SMS transaction from unknown bank shortcodes is discarded.
 
 ## Android Background SMS Processing & Sync Pipeline
 
@@ -166,10 +162,6 @@ flowchart TD
 ### Historical Inbox Import (`OldSmsImporter`)
 - **Chronological Sorting (`DATE ASC`):** Inbox messages are scanned in ascending chronological order (`DATE ASC`). This guarantees that account balances and transaction histories are calculated in true chronological sequence, ensuring `lastBalanceUpdate` reflects the latest transaction state accurately.
 - **Progress Flow:** Emits `SmsImportProgress` containing progress fractions and detailed counts (`recordedCount`, `duplicateCount`, `ignoredOrUnrecognizedCount`).
-
-### Android 13+ Restricted Settings & Permissions
-- Sideloaded APKs on Android 13+ (API 33+) may restrict SMS receiver accessibility.
-- `SmsPermissionHelper` provides helper functions (`createAppSettingsIntent`) to direct users to **App Details Settings** to enable *"Allow restricted settings"*.
 
 ## UI Layer Architecture, RTL Theme & Reusable Components
 
@@ -239,13 +231,10 @@ flowchart TD
 ### Key Business Rules & Utilities
 1. **`ApplyKeywordRulesUseCase`**:
    - Retroactively matches Persian keywords against transaction notes and raw SMS bodies.
-   - Normalizes characters and Persian/English digits (`PersianTextNormalizer`) to ensure robust substring matching regardless of Arabic vs. Persian character variants.
+   - Normalizes characters and Persian/English digits (`PersianTextNormalizer`) to ensure robust substring matching.
 2. **`DetectInternalTransfersUseCase`**:
    - Scans non-transfer transactions to detect candidate internal card-to-card transfers between different user accounts (`account.id != other.account.id`) with matching amounts within a 15-minute window.
    - Once confirmed, both transactions are converted to `TransactionKind.TRANSFER`, keeping income/expense totals clean.
-3. **Default vs. Custom Categories**:
-   - Default categories (`isDefault = true`) cannot be deleted, preserving core system identity, but users can freely add custom keywords.
-   - Custom categories (`isDefault = false`) can be created, updated, and deleted.
 
 ## Financial Analytics, Canvas Charts, CSV Export & SQLite Backup
 
@@ -266,7 +255,6 @@ flowchart TD
    - Excludes internal transfers so trend bars reflect true income vs. expense cash flow.
 2. **`CsvReportExporter`**:
    - Encodes exported CSV files with **UTF-8 BOM (`\uFEFF`)** so Microsoft Excel displays Persian text without garbled characters.
-   - Formats amounts, Jalali dates, bank names, accounts, and descriptions with proper CSV escaping.
 3. **`DatabaseBackupManager`**:
    - Checkpoints WAL (`PRAGMA wal_checkpoint(FULL)`), exports full `.db` files, validates SQLite header magic bytes (`"SQLite format 3\u0000"`), and restores database state safely.
 
