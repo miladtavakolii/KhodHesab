@@ -1,11 +1,11 @@
 package ir.khodhesab.core.util
 
 /**
- * Utility for normalizing Persian and Arabic text in SMS messages.
+ * Utility for normalizing Persian and Arabic text in SMS messages and canonicalizing sender IDs.
  *
  * Provides operations to convert Persian/Arabic digits to English digits,
- * normalize Arabic character variants to Persian equivalents, sanitize numeric amounts
- * by stripping thousand separators, and clean up whitespace and line breaks.
+ * normalize Arabic character variants to Persian equivalents, strip invisible Unicode control characters,
+ * unify separators, sanitize numeric amounts, and canonicalize phone numbers / alphanumeric senders.
  */
 object PersianTextNormalizer {
 
@@ -16,11 +16,10 @@ object PersianTextNormalizer {
         '٥' to '5', '٦' to '6', '٧' to '7', '٨' to '8', '٩' to '9'
     )
 
+    private val INVISIBLE_CONTROL_REGEX = Regex("[\\u200E\\u200F\\u202A-\\u202E\\u2066-\\u2069\\uFEFF]")
+
     /**
      * Converts all Persian (`۰-۹`) and Arabic (`٠-٩`) digits in [input] to English digits (`0-9`).
-     *
-     * @param input The raw input string containing potential Persian/Arabic digits.
-     * @return String with all Persian and Arabic digits converted to English digits.
      */
     fun convertDigitsToEnglish(input: String): String {
         val builder = StringBuilder(input.length)
@@ -32,14 +31,6 @@ object PersianTextNormalizer {
 
     /**
      * Normalizes Arabic character variants into standard Persian equivalents.
-     *
-     * Replacements performed:
-     * - `ي` (`\u064A`) -> `ی` (`\u06CC`)
-     * - `ك` (`\u0643`) -> `ک` (`\u06A9`)
-     * - `ة` (`\u0629`) -> `ه` (`\u0647`)
-     *
-     * @param input The input text containing Arabic character variants.
-     * @return Text with normalized Persian characters.
      */
     fun normalizeCharacters(input: String): String {
         return input
@@ -49,10 +40,34 @@ object PersianTextNormalizer {
     }
 
     /**
+     * Strips invisible Unicode control/directional characters (`LRM`, `RLM`, `BOM`, etc.)
+     * and replaces `\u200C` (ZWNJ) with a space `' '`.
+     */
+    fun stripControlCharacters(input: String): String {
+        return input
+            .replace('\u200C', ' ')
+            .replace(INVISIBLE_CONTROL_REGEX, "")
+    }
+
+    /**
+     * Unifies various Persian/Arabic/quote comma separators (`٬`, `،`, `'`) into standard ASCII comma (`,`).
+     */
+    fun unifySeparators(input: String): String {
+        return input
+            .replace('٬', ',')
+            .replace('،', ',')
+            .replace('\'', ',')
+    }
+
+    /**
+     * Converts dot-separated thousand groups (e.g. `1.500.000` -> `1,500,000`) when followed by 3 digits.
+     */
+    fun convertDotSeparatedThousands(input: String): String {
+        return input.replace(Regex("(?<=\\d)\\.(?=\\d{3}(?:\\D|$))"), ",")
+    }
+
+    /**
      * Removes thousand separators (`,`, `،`, `٬`) from numeric strings.
-     *
-     * @param input The string containing numbers with separators.
-     * @return String with thousand separators removed between or adjacent to digits.
      */
     fun removeThousandSeparators(input: String): String {
         return input
@@ -62,12 +77,6 @@ object PersianTextNormalizer {
 
     /**
      * Extracts a clean [Long] financial amount from a text string.
-     *
-     * First converts Persian/Arabic digits to English digits and strips thousand separators,
-     * then extracts the largest contiguous sequence of digits as a [Long].
-     *
-     * @param input The text containing a financial amount (e.g., `"۱,۲۵۰,۰۰۰ ریال"`).
-     * @return Extracted [Long] amount or `null` if no valid digits exist or parsing fails.
      */
     fun extractAmount(input: String): Long? {
         val englishDigits = convertDigitsToEnglish(input)
@@ -78,12 +87,6 @@ object PersianTextNormalizer {
 
     /**
      * Trims extra whitespace and standardizes newlines.
-     *
-     * Replaces `\r\n` and `\r` with `\n`, reduces multiple spaces or tabs on a single line to a single space,
-     * trims leading/trailing spaces from each line, and trims the overall string.
-     *
-     * @param input The raw input string.
-     * @return Cleaned string with uniform whitespace and line endings.
      */
     fun normalizeWhitespaceAndNewlines(input: String): String {
         return input
@@ -97,16 +100,40 @@ object PersianTextNormalizer {
     }
 
     /**
+     * Normalizes SMS sender strings (phone numbers or alphanumeric sender IDs) to a canonical representation.
+     *
+     * Strips leading `+`, `00`, country code `98` (for numbers >= 10 digits), and leading zeros.
+     * Keeps alphanumeric senders intact as lowercase string.
+     */
+    fun canonicalSender(sender: String): String {
+        val asciiSender = convertDigitsToEnglish(sender.trim()).lowercase()
+        val cleaned = asciiSender.filter { it.isLetterOrDigit() }
+
+        if (cleaned.any { it.isLetter() }) {
+            return cleaned
+        }
+
+        var digits = cleaned
+        if (digits.startsWith("00")) {
+            digits = digits.substring(2)
+        }
+        if (digits.length >= 10 && digits.startsWith("98")) {
+            digits = digits.substring(2)
+        }
+        digits = digits.dropWhile { it == '0' }
+
+        return digits.ifEmpty { cleaned }
+    }
+
+    /**
      * Performs complete text normalization on SMS content.
-     *
-     * Applies character normalization, digit conversion, and whitespace standardization.
-     *
-     * @param input The raw SMS text.
-     * @return Fully normalized SMS text string.
      */
     fun normalize(input: String): String {
-        val step1 = normalizeCharacters(input)
-        val step2 = convertDigitsToEnglish(step1)
-        return normalizeWhitespaceAndNewlines(step2)
+        val step1 = stripControlCharacters(input)
+        val step2 = normalizeCharacters(step1)
+        val step3 = convertDigitsToEnglish(step2)
+        val step4 = unifySeparators(step3)
+        val step5 = convertDotSeparatedThousands(step4)
+        return normalizeWhitespaceAndNewlines(step5)
     }
 }

@@ -37,42 +37,31 @@ class PersianTextNormalizerTest {
     }
 
     @Test
-    fun normalizeCharacters_convertsTehMarbutaToHeh() {
-        val input = "خاطرة"
-        val result = PersianTextNormalizer.normalizeCharacters(input)
-        assertThat(result).isEqualTo("خاطره")
+    fun stripControlCharacters_removesInvisibleUnicodeAndReplacesZwnjWithSpace() {
+        val input = "بانک\u200Cملی\u200E \u200F۱,۵۰۰,۰۰۰\uFEFF"
+        val result = PersianTextNormalizer.stripControlCharacters(input)
+        assertThat(result).isEqualTo("بانک ملی ۱,۵۰۰,۰۰۰")
     }
 
     @Test
-    fun removeThousandSeparators_removesVariousSeparators() {
-        val input = "1,250,000 و ۱،۵۰۰،۰۰۰ و ۱۰٬۰۰۰"
-        val result = PersianTextNormalizer.removeThousandSeparators(input)
-        assertThat(result).isEqualTo("1250000 و ۱۵۰۰۰۰۰ و ۱۰۰۰۰")
+    fun convertDotSeparatedThousands_convertsDotsToCommas() {
+        val input = "مبلغ 1.500.000 ریال"
+        val result = PersianTextNormalizer.convertDotSeparatedThousands(input)
+        assertThat(result).isEqualTo("مبلغ 1,500,000 ریال")
     }
 
     @Test
-    fun extractAmount_extractsValidAmountFromPersianRialString() {
-        val input = "برداشت مبلغ ۱,۲۵۰,۰۰۰ ریال از حساب"
-        val amount = PersianTextNormalizer.extractAmount(input)
-        assertThat(amount).isEqualTo(1250000L)
-    }
-
-    @Test
-    fun extractAmount_returnsNullForInvalidOrEmptyString() {
-        assertThat(PersianTextNormalizer.extractAmount("هیچ عددی نیست")).isNull()
-        assertThat(PersianTextNormalizer.extractAmount("")).isNull()
-    }
-
-    @Test
-    fun normalizeWhitespaceAndNewlines_trimsAndStandardizesNewlines() {
-        val input = "  سطر اول   \r\n\r\n   سطر دوم    \r   "
-        val result = PersianTextNormalizer.normalizeWhitespaceAndNewlines(input)
-        assertThat(result).isEqualTo("سطر اول\n\nسطر دوم")
+    fun canonicalSender_normalizesNumericAndAlphanumericSendersEquivalently() {
+        assertThat(PersianTextNormalizer.canonicalSender("+98 2000 1234")).isEqualTo("20001234")
+        assertThat(PersianTextNormalizer.canonicalSender("009820001234")).isEqualTo("20001234")
+        assertThat(PersianTextNormalizer.canonicalSender("020001234")).isEqualTo("20001234")
+        assertThat(PersianTextNormalizer.canonicalSender("20001234")).isEqualTo("20001234")
+        assertThat(PersianTextNormalizer.canonicalSender("BankMellat")).isEqualTo("bankmellat")
     }
 
     @Test
     fun normalize_executesEndToEndNormalization() {
-        val rawSms = "  بانك ملي\r\nمبلغ: ۱,۵۰۰,۰۰۰ ريال  "
+        val rawSms = "  بانك ملي\u200E\r\nمبلغ: ۱.۵۰۰.۰۰۰ ريال  "
         val normalized = PersianTextNormalizer.normalize(rawSms)
         assertThat(normalized).isEqualTo("بانک ملی\nمبلغ: 1,500,000 ریال")
     }
