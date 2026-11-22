@@ -285,4 +285,30 @@ class IranianBankSmsTemplatesTest {
         val outcome = parserEngine.parse(sms)
         assertThat(outcome).isInstanceOf(SmsParseOutcome.IgnoredNonFinancial::class.java)
     }
+
+    @Test
+    fun test18_TransferDepositWithTrailingPlus() = runTest {
+        setupMockBank("OTHER", "+98900000000")
+        val body = "انتقال: 50,000,000+\n حساب:56001\n مانده:79,510,199\n 0901 - 22:38"
+        val sms = RawSmsMessage("+98900000000", body, 1000L)
+
+        val outcome = parserEngine.parse(sms)
+        assertThat(outcome).isInstanceOf(SmsParseOutcome.Success::class.java)
+
+        val data = (outcome as SmsParseOutcome.Success).data
+        assertThat(data.kind).isEqualTo(TransactionKind.DEPOSIT)
+        assertThat(data.amount).isEqualTo(50_000_000L)
+        assertThat(data.balanceAfter).isEqualTo(79_510_199L)
+        assertThat(data.accountIdentifier).isEqualTo("6001")
+    }
+
+    @Test
+    fun test19_ServiceActivationNoticeIsIgnored() = runTest {
+        setupMockBank("MELLI", "9611")
+        val body = "مشتری گرامی، بسته پیامک با آبونمان و بسته پیامک زیر300 هزار ریال برای حساب شماره 7743328709 با کارمزد 600000 ریال فعال گردید."
+        val sms = RawSmsMessage("9611", body, 1000L)
+
+        val outcome = parserEngine.parse(sms)
+        assertThat(outcome).isInstanceOf(SmsParseOutcome.IgnoredNonFinancial::class.java)
+    }
 }

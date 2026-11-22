@@ -19,13 +19,16 @@ object BaseRegexExtractor {
      * Detects [TransactionKind] based on Persian action keywords and signed prefixes (`+` / `-`).
      */
     fun detectTransactionKind(normalizedBody: String): TransactionKind {
-        // 1. Check explicit positive or negative sign directly attached to amount
-        if (Regex("(?:مبلغ|واریز|برداشت)[:\\s]*\\+\\s*[\\d,،٬]+").containsMatchIn(normalizedBody) ||
-            Regex("\\+\\s*[\\d,،٬]+\\s*(?:ریال|تومان)").containsMatchIn(normalizedBody)) {
+        // 1. Check explicit positive or negative sign directly attached to amount (prefix or suffix)
+        if (Regex("(?:مبلغ|واریز|برداشت|انتقال)[:\\s]*\\+\\s*[\\d,،٬]+").containsMatchIn(normalizedBody) ||
+            Regex("\\+\\s*[\\d,،٬]+\\s*(?:ریال|تومان)?").containsMatchIn(normalizedBody) ||
+            Regex("(?:مبلغ|واریز|برداشت|انتقال)[:\\s]*[\\d,،٬]+\\s*\\+").containsMatchIn(normalizedBody) ||
+            Regex("[\\d,،٬]+\\+\\s*(?:ریال|تومان)?").containsMatchIn(normalizedBody)) {
             return TransactionKind.DEPOSIT
         }
-        if (Regex("(?:مبلغ|واریز|برداشت)[:\\s]*-\\s*[\\d,،٬]+").containsMatchIn(normalizedBody) ||
+        if (Regex("(?:مبلغ|واریز|برداشت|انتقال)[:\\s]*-\\s*[\\d,،٬]+").containsMatchIn(normalizedBody) ||
             Regex("-\\s*[\\d,،٬]+\\s*(?:ریال|تومان)").containsMatchIn(normalizedBody) ||
+            Regex("(?:مبلغ|واریز|برداشت|انتقال)[:\\s]*[\\d,،٬]+\\s*-").containsMatchIn(normalizedBody) ||
             Regex("[\\d,،٬]+-\\s*(?:ریال|تومان)").containsMatchIn(normalizedBody)) {
             return TransactionKind.WITHDRAWAL
         }
@@ -51,8 +54,8 @@ object BaseRegexExtractor {
      */
     fun extractAmountInRials(normalizedBody: String): Long? {
         val amountRegexList = listOf(
-            Regex("(?:مبلغ|واریز|برداشت|خرید|انتقال|وجه)[:\\s]*([+-]?\\s*[\\d,،٬]+)"),
-            Regex("([+-]?\\s*[\\d,،٬]+)\\s*(?:ریال|تومان)"),
+            Regex("(?:مبلغ|واریز|برداشت|خرید|انتقال|وجه)[:\\s]*([+-]?\\s*[\\d,،٬]+[+-]?)"),
+            Regex("([+-]?\\s*[\\d,،٬]+[+-]?)\\s*(?:ریال|تومان)"),
             Regex("([\\d,،٬]+)\\s*(?:ریال|تومان)?")
         )
 
@@ -124,6 +127,14 @@ object BaseRegexExtractor {
         val kind = detectTransactionKind(normalizedBody)
         val balance = extractBalanceInRials(normalizedBody)
         val accountId = extractAccountIdentifier(normalizedBody)
+
+        val hasBalanceKeyword = normalizedBody.contains("مانده") ||
+                normalizedBody.contains("موجودی") ||
+                normalizedBody.contains("باقیمانده")
+        if (balance == null && !hasBalanceKeyword) {
+            return null
+        }
+
         val hash = SmsHashGenerator.generateHash(rawSms.sender, normalizedBody, rawSms.timestamp)
 
         return ParsedSmsData(

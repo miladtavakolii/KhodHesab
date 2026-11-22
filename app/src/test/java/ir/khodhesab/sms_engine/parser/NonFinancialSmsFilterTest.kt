@@ -84,4 +84,20 @@ class NonFinancialSmsFilterTest {
 
         assertThat(result).isNull()
     }
+
+    @Test
+    fun checkNonFinancial_acceptsTransferDepositWithBalance() {
+        val transferSms = "انتقال: 50,000,000+\n حساب:56001\n مانده:79,510,199\n 0901 - 22:38"
+        val result = filter.checkNonFinancial(transferSms)
+
+        assertThat(result).isNull()
+    }
+
+    @Test
+    fun checkNonFinancial_rejectsServiceActivationSms() {
+        val serviceSms = "مشتری گرامی، بسته پیامک با آبونمان و بسته پیامک زیر300 هزار ریال برای حساب شماره 7743328709 با کارمزد 600000 ریال فعال گردید."
+        val result = filter.checkNonFinancial(serviceSms)
+
+        assertThat(result).isNotNull()
+    }
 }

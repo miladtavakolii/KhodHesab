@@ -26,7 +26,12 @@ class NonFinancialSmsFilter @Inject constructor() {
     )
 
     private val promotionalKeywords = listOf(
-        "لغو 11", "لغو11", "کد تخفیف", "قرعه کشی", "بسته اینترنت", "مشترک گرامی"
+        "لغو 11", "لغو11", "کد تخفیف", "قرعه کشی", "بسته اینترنت", "بسته پیامک",
+        "سرویس پیامک", "آبونمان", "مشترک گرامی", "مشتری گرامی"
+    )
+
+    private val serviceNoticeKeywords = listOf(
+        "فعال گردید", "فعال شد", "غیرفعال گردید", "غیرفعال شد", "غیر فعال شد", "تغییر شماره"
     )
 
     private val balanceKeywords = listOf(
@@ -72,6 +77,13 @@ class NonFinancialSmsFilter @Inject constructor() {
             val normalizedKeyword = PersianTextNormalizer.normalize(keyword)
             if (normalized.contains(normalizedKeyword, ignoreCase = true)) {
                 return "پیامک تبلیغاتی / اپراتور است ($keyword)."
+            }
+        }
+
+        for (keyword in serviceNoticeKeywords) {
+            val normalizedKeyword = PersianTextNormalizer.normalize(keyword)
+            if (normalized.contains(normalizedKeyword, ignoreCase = true)) {
+                return "پیامک اطلاعیه خدمات / فعال‌سازی سرویس است ($keyword)."
             }
         }
 
