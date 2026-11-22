@@ -169,3 +169,37 @@ fun TransactionsScreen(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+private fun TransactionsScreenPreview() {
+    ir.khodhesab.ui.theme.KhodHesabTheme {
+        val bank = ir.khodhesab.domain.model.Bank(code = "MELLAT", persianName = "بانک ملت", colorHex = "#E53935", iconKey = "ic_bank")
+        val account = ir.khodhesab.domain.model.Account(id = 1, bank = bank, accountIdentifier = "1234", title = "حساب ملت", currentBalance = 20_000_000L)
+        val category = ir.khodhesab.domain.model.Category(id = 1, name = "حمل و نقل", iconKey = "ic_cat_transport", colorHex = "#2196F3", kind = TransactionKind.WITHDRAWAL)
+        val tx1 = Transaction(
+            id = 1,
+            account = account,
+            category = category,
+            kind = TransactionKind.WITHDRAWAL,
+            amount = 120_000L,
+            timestamp = System.currentTimeMillis(),
+            description = "اسنپ"
+        )
+        val state = TransactionsUiState(
+            transactions = listOf(tx1),
+            accounts = listOf(account),
+            currencyUnit = ir.khodhesab.domain.model.CurrencyUnit.TOMAN
+        )
+        TransactionsScreen(
+            state = state,
+            onSearchQueryChange = {},
+            onAccountFilterChange = {},
+            onKindFilterChange = {},
+            onToggleUncategorizedOnly = {},
+            onClearFilters = {},
+            onTransactionClick = {}
+        )
+    }
+}
+

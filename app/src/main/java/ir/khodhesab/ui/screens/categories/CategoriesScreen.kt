@@ -274,3 +274,31 @@ fun CategoriesScreen(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+private fun CategoriesScreenPreview() {
+    ir.khodhesab.ui.theme.KhodHesabTheme {
+        val sampleCategories = listOf(
+            Category(id = 1, name = "خوراکی و سوپرمارکت", iconKey = "ic_cat_food", colorHex = "#FF5722", kind = TransactionKind.WITHDRAWAL, keywords = listOf("افق کوروش", "جانبو")),
+            Category(id = 2, name = "حمل و نقل", iconKey = "ic_cat_transport", colorHex = "#2196F3", kind = TransactionKind.WITHDRAWAL, keywords = listOf("اسنپ", "تپسی"))
+        )
+        val state = CategoriesUiState(
+            categories = sampleCategories,
+            selectedKind = TransactionKind.WITHDRAWAL
+        )
+        CategoriesScreen(
+            state = state,
+            onSelectKind = {},
+            onStartCreateCategory = {},
+            onStartEditCategory = {},
+            onDismissEditor = {},
+            onSaveCategory = { _, _, _, _ -> },
+            onDeleteCategory = {},
+            onRunRetroactiveAutoCategorization = {},
+            onConfirmInternalTransfer = {},
+            onDismissFeedback = {}
+        )
+    }
+}
+

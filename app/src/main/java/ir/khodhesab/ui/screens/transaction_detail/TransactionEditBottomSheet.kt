@@ -215,3 +215,39 @@ fun TransactionEditBottomSheet(
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+private fun TransactionEditBottomSheetPreview() {
+    ir.khodhesab.ui.theme.KhodHesabTheme {
+        val bank = ir.khodhesab.domain.model.Bank(code = "MELLAT", persianName = "بانک ملت", colorHex = "#E53935", iconKey = "ic")
+        val account = ir.khodhesab.domain.model.Account(id = 1, bank = bank, accountIdentifier = "1234", title = "حساب ملت", currentBalance = 10_000_000L)
+        val category = Category(id = 1, name = "خوراکی", iconKey = "ic_cat_food", colorHex = "#FF5722", kind = TransactionKind.WITHDRAWAL)
+        val transaction = Transaction(
+            id = 1,
+            account = account,
+            category = category,
+            kind = TransactionKind.WITHDRAWAL,
+            amount = 500_000L,
+            timestamp = System.currentTimeMillis(),
+            rawSmsBody = "برداشت 500,000 ریال از حساب 1234",
+            description = "خرید فروشگاه"
+        )
+        TransactionEditBottomSheet(
+            transaction = transaction,
+            categories = listOf(category),
+            selectedCategoryId = 1L,
+            selectedKind = TransactionKind.WITHDRAWAL,
+            description = "خرید فروشگاه",
+            currencyUnit = CurrencyUnit.TOMAN,
+            onCategorySelect = {},
+            onKindSelect = {},
+            onDescriptionChange = {},
+            onSave = {},
+            onDelete = {},
+            onDismiss = {}
+        )
+    }
+}
+

@@ -165,3 +165,27 @@ fun MainAppScaffold(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+private fun MainAppNavigationBarPreview() {
+    ir.khodhesab.ui.theme.KhodHesabTheme {
+        NavigationBar {
+            KhodHesabDestination.items.forEach { destination ->
+                val selected = destination == KhodHesabDestination.Dashboard
+                NavigationBarItem(
+                    selected = selected,
+                    onClick = {},
+                    icon = {
+                        Icon(
+                            imageVector = destination.icon,
+                            contentDescription = destination.title
+                        )
+                    },
+                    label = { Text(text = destination.title) }
+                )
+            }
+        }
+    }
+}
+

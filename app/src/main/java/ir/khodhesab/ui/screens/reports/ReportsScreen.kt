@@ -308,3 +308,43 @@ fun ReportsScreen(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+private fun ReportsScreenPreview() {
+    ir.khodhesab.ui.theme.KhodHesabTheme {
+        val cat1 = ir.khodhesab.domain.model.Category(id = 1, name = "خوراکی", iconKey = "ic_cat_food", colorHex = "#FF5722", kind = TransactionKind.WITHDRAWAL)
+        val cat2 = ir.khodhesab.domain.model.Category(id = 2, name = "مسکن", iconKey = "ic_cat_home", colorHex = "#9C27B0", kind = TransactionKind.WITHDRAWAL)
+        val breakdowns = listOf(
+            ir.khodhesab.domain.model.CategoryBreakdown(category = cat1, totalAmount = 6_000_000L, transactionCount = 4, percentage = 60f),
+            ir.khodhesab.domain.model.CategoryBreakdown(category = cat2, totalAmount = 4_000_000L, transactionCount = 2, percentage = 40f)
+        )
+        val buckets = listOf(
+            ir.khodhesab.domain.model.TrendBucket(label = "فروردین", startMillis = 0L, endMillis = 1L, totalIncome = 15_000_000L, totalExpense = 10_000_000L),
+            ir.khodhesab.domain.model.TrendBucket(label = "اردیبهشت", startMillis = 0L, endMillis = 1L, totalIncome = 18_000_000L, totalExpense = 12_000_000L)
+        )
+        val state = ReportsUiState(
+            selectedPeriod = ReportPeriod.MONTHLY,
+            periodTitle = "فروردین ۱۴۰۳",
+            summary = ir.khodhesab.domain.model.FinancialSummary(totalIncome = 33_000_000L, totalExpense = 22_000_000L, transactionCount = 6),
+            trendBuckets = buckets,
+            categoryBreakdowns = breakdowns,
+            currencyUnit = ir.khodhesab.domain.model.CurrencyUnit.TOMAN
+        )
+        ReportsScreen(
+            state = state,
+            onSelectPeriod = {},
+            onPreviousPeriod = {},
+            onNextPeriod = {},
+            onSelectAccount = {},
+            onSelectBreakdownKind = {},
+            onExportCsv = {},
+            onCreateBackup = {},
+            onRestoreBackup = {},
+            onShareHandled = {},
+            onDismissMessage = {}
+        )
+    }
+}
+
+

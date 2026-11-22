@@ -127,3 +127,21 @@ fun CategoryDonutChart(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+private fun CategoryDonutChartPreview() {
+    ir.khodhesab.ui.theme.KhodHesabTheme {
+        val cat1 = ir.khodhesab.domain.model.Category(id = 1, name = "خوراکی", iconKey = "ic_cat_food", colorHex = "#FF5722", kind = ir.khodhesab.domain.model.TransactionKind.WITHDRAWAL)
+        val cat2 = ir.khodhesab.domain.model.Category(id = 2, name = "حمل و نقل", iconKey = "ic_cat_transport", colorHex = "#2196F3", kind = ir.khodhesab.domain.model.TransactionKind.WITHDRAWAL)
+        val breakdowns = listOf(
+            CategoryBreakdown(category = cat1, totalAmount = 3_000_000L, transactionCount = 3, percentage = 75f),
+            CategoryBreakdown(category = cat2, totalAmount = 1_000_000L, transactionCount = 1, percentage = 25f)
+        )
+        CategoryDonutChart(
+            breakdowns = breakdowns,
+            currencyUnit = CurrencyUnit.TOMAN
+        )
+    }
+}
+

@@ -108,3 +108,18 @@ fun IncomeExpenseBarChart(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+private fun IncomeExpenseBarChartPreview() {
+    ir.khodhesab.ui.theme.KhodHesabTheme {
+        val buckets = listOf(
+            TrendBucket(label = "هفته ۱", startMillis = 0L, endMillis = 1L, totalIncome = 5_000_000L, totalExpense = 3_000_000L),
+            TrendBucket(label = "هفته ۲", startMillis = 0L, endMillis = 1L, totalIncome = 7_000_000L, totalExpense = 4_500_000L),
+            TrendBucket(label = "هفته ۳", startMillis = 0L, endMillis = 1L, totalIncome = 4_000_000L, totalExpense = 6_000_000L),
+            TrendBucket(label = "هفته ۴", startMillis = 0L, endMillis = 1L, totalIncome = 8_000_000L, totalExpense = 2_000_000L)
+        )
+        IncomeExpenseBarChart(buckets = buckets)
+    }
+}
+

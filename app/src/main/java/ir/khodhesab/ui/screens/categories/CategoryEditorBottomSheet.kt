@@ -261,3 +261,27 @@ fun CategoryEditorBottomSheet(
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+private fun CategoryEditorBottomSheetPreview() {
+    ir.khodhesab.ui.theme.KhodHesabTheme {
+        val editingCategory = Category(
+            id = 1,
+            name = "خوراکی و سوپرمارکت",
+            iconKey = "ic_cat_food",
+            colorHex = "#FF5722",
+            kind = ir.khodhesab.domain.model.TransactionKind.WITHDRAWAL,
+            keywords = listOf("اسنپ", "هایپر")
+        )
+        CategoryEditorBottomSheet(
+            editingCategory = editingCategory,
+            isCreating = false,
+            onSave = { _, _, _, _ -> },
+            onDelete = {},
+            onDismiss = {}
+        )
+    }
+}
+

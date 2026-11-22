@@ -77,3 +77,17 @@ fun EmptyStateView(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+private fun EmptyStateViewPreview() {
+    ir.khodhesab.ui.theme.KhodHesabTheme {
+        EmptyStateView(
+            title = "هیچ تراکنشی یافت نشد",
+            subtitle = "پیامک‌های بانکی پس از ورود خودکار نمایش داده می‌شوند.",
+            actionText = "همگام‌سازی پیامک‌ها",
+            onActionClick = {}
+        )
+    }
+}
+

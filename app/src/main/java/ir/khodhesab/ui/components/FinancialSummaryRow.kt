@@ -81,3 +81,19 @@ fun FinancialSummaryRow(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+private fun FinancialSummaryRowPreview() {
+    ir.khodhesab.ui.theme.KhodHesabTheme {
+        FinancialSummaryRow(
+            summary = FinancialSummary(
+                totalIncome = 45_000_000L,
+                totalExpense = 18_500_000L,
+                transactionCount = 10
+            ),
+            currencyUnit = CurrencyUnit.TOMAN
+        )
+    }
+}
+

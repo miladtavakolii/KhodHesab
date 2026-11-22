@@ -92,3 +92,18 @@ fun RenameAccountDialog(
         }
     )
 }
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+private fun RenameAccountDialogPreview() {
+    ir.khodhesab.ui.theme.KhodHesabTheme {
+        val bank = ir.khodhesab.domain.model.Bank(code = "MELLAT", persianName = "بانک ملت", colorHex = "#E53935", iconKey = "ic")
+        val account = Account(id = 1, bank = bank, accountIdentifier = "1234", title = "حساب ملت", currentBalance = 10_000_000L)
+        RenameAccountDialog(
+            account = account,
+            onDismiss = {},
+            onSave = { _, _ -> }
+        )
+    }
+}
+

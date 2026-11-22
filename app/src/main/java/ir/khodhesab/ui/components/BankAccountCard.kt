@@ -124,7 +124,7 @@ fun BankAccountCard(
     }
 }
 
-@Preview
+@Preview(name = "Single Account Selected", showBackground = true)
 @Composable
 private fun BankAccountCardPreview() {
     KhodHesabTheme {
@@ -133,3 +133,12 @@ private fun BankAccountCardPreview() {
         BankAccountCard(account = account, isSelected = true, onClick = {})
     }
 }
+
+@Preview(name = "All Accounts Card", showBackground = true)
+@Composable
+private fun BankAccountCardAllAccountsPreview() {
+    KhodHesabTheme {
+        BankAccountCard(account = null, isSelected = true, onClick = {})
+    }
+}
+

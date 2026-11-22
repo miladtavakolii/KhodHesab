@@ -42,14 +42,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ir.khodhesab.domain.model.Account
+import ir.khodhesab.domain.model.Bank
+import ir.khodhesab.domain.model.Category
+import ir.khodhesab.domain.model.CurrencyUnit
+import ir.khodhesab.domain.model.FinancialSummary
 import ir.khodhesab.domain.model.Transaction
+import ir.khodhesab.domain.model.TransactionKind
 import ir.khodhesab.ui.components.BankAccountCard
 import ir.khodhesab.ui.components.CurrencyToggleChip
 import ir.khodhesab.ui.components.EmptyStateView
 import ir.khodhesab.ui.components.FinancialSummaryRow
 import ir.khodhesab.ui.components.TransactionListItem
+import ir.khodhesab.ui.theme.KhodHesabTheme
 
 /**
  * Main Dashboard Screen displaying accounts carousel, monthly cash flow summary, recent transactions,
@@ -273,3 +280,44 @@ fun DashboardScreen(
         )
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+private fun DashboardScreenPreview() {
+    KhodHesabTheme {
+        val bank = Bank(code = "MELLAT", persianName = "بانک ملت", colorHex = "#E53935", iconKey = "ic_bank")
+        val account = Account(id = 1, bank = bank, accountIdentifier = "1234", title = "حساب اصلی ملت", currentBalance = 25_000_000L)
+        val category = Category(id = 1, name = "خوراکی و سوپرمارکت", iconKey = "ic_cat_food", colorHex = "#FF5722", kind = TransactionKind.WITHDRAWAL)
+        val sampleTransaction = Transaction(
+            id = 101,
+            account = account,
+            category = category,
+            kind = TransactionKind.WITHDRAWAL,
+            amount = 450_000L,
+            timestamp = System.currentTimeMillis(),
+            rawSmsBody = "برداشت 450000 ریال از 1234",
+            description = "خرید سوپرمارکت"
+        )
+        val sampleState = DashboardUiState(
+            accounts = listOf(account),
+            selectedAccountId = null,
+            periodSummary = FinancialSummary(totalIncome = 50_000_000L, totalExpense = 15_000_000L, transactionCount = 1),
+            recentTransactions = listOf(sampleTransaction),
+            currencyUnit = CurrencyUnit.TOMAN,
+            isInitialSmsSyncDone = true
+        )
+        DashboardScreen(
+            state = sampleState,
+            onSelectAccount = {},
+            onToggleCurrencyUnit = {},
+            onStartHistoricalSmsSync = {},
+            onDismissSyncMessage = {},
+            onRenameAccount = { _, _ -> },
+            onToggleAccountActive = { _, _ -> },
+            onTransactionClick = {},
+            onNavigateToTransactions = {},
+            onAddManualTransactionClick = {}
+        )
+    }
+}
+

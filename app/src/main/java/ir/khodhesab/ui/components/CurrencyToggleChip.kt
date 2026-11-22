@@ -70,3 +70,15 @@ fun CurrencyToggleChip(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+private fun CurrencyToggleChipPreview() {
+    ir.khodhesab.ui.theme.KhodHesabTheme {
+        CurrencyToggleChip(
+            selectedUnit = CurrencyUnit.TOMAN,
+            onUnitSelected = {}
+        )
+    }
+}
+
