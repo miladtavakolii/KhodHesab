@@ -44,7 +44,7 @@ class ProcessIncomingSmsWorkerTest {
     fun doWork_processesSmsAndShowsNotificationWhenRecorded() = runTest {
         val inputData = workDataOf(
             ProcessIncomingSmsWorker.KEY_SENDER to "200033",
-            ProcessIncomingSmsWorker.KEY_BODY to "برداشت 100000",
+            ProcessIncomingSmsWorker.KEY_BODY to "برداشت 100000\nمانده: 500000",
             ProcessIncomingSmsWorker.KEY_TIMESTAMP to 1000L
         )
 

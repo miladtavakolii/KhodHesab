@@ -25,6 +25,14 @@ class NonFinancialSmsFilter @Inject constructor() {
         "ناموفق", "لغو تراکنش", "خطا در تراکنش", "موجودی کافی نیست", "مانده کافی نیست"
     )
 
+    private val promotionalKeywords = listOf(
+        "لغو 11", "لغو11", "کد تخفیف", "قرعه کشی", "بسته اینترنت", "مشترک گرامی"
+    )
+
+    private val balanceKeywords = listOf(
+        "مانده", "موجودی", "باقیمانده"
+    )
+
     private val transactionKeywords = listOf(
         "واریز", "برداشت", "خرید", "انتقال", "کاهش", "افزایش", "مبلغ", "مانده", "موجودی", "کارمزد", "پایا", "ساتنا"
     )
@@ -58,6 +66,20 @@ class NonFinancialSmsFilter @Inject constructor() {
             if (normalized.contains(normalizedKeyword, ignoreCase = true)) {
                 return "پیامک تراکنش ناموفق / عدم موجودی است ($keyword)."
             }
+        }
+
+        for (keyword in promotionalKeywords) {
+            val normalizedKeyword = PersianTextNormalizer.normalize(keyword)
+            if (normalized.contains(normalizedKeyword, ignoreCase = true)) {
+                return "پیامک تبلیغاتی / اپراتور است ($keyword)."
+            }
+        }
+
+        val hasBalanceKeyword = balanceKeywords.any {
+            normalized.contains(PersianTextNormalizer.normalize(it), ignoreCase = true)
+        }
+        if (!hasBalanceKeyword) {
+            return "Missing balance keyword: مانده/موجودی"
         }
 
         val hasTransactionKeyword = transactionKeywords.any {

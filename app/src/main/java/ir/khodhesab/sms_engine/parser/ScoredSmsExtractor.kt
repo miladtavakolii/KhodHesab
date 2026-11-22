@@ -146,6 +146,11 @@ class ScoredSmsExtractor @Inject constructor() {
         val bestAmountCandidate = candidates.filter { it.score >= 0 }.maxByOrNull { it.score } ?: return null
         val bestBalanceCandidate = balanceCandidates.maxByOrNull { it.score }
 
+        val hasBalanceKeyword = text.contains("مانده") || text.contains("موجودی") || text.contains("باقیمانده")
+        if (bestBalanceCandidate == null && !hasBalanceKeyword) {
+            return null
+        }
+
         val kind = detectKindByProximity(text, bestAmountCandidate)
         val accountId = extractAccountIdentifier(text)
         val hash = SmsHashGenerator.generateHash(rawSms.sender, normalizedBody, rawSms.timestamp)

@@ -30,7 +30,7 @@ class BankDetectorTest {
         val melli = Bank(id = 1, code = "MELLI", persianName = "بانک ملی", colorHex = "#B", iconKey = "i")
         coEvery { bankRepository.findBankBySender("9611") } returns melli
 
-        val detected = detector.detectBank("9611", "برداشت 1000")
+        val detected = detector.detectBank("9611", "برداشت 1000\nمانده: 5000")
         assertThat(detected?.code).isEqualTo("MELLI")
     }
 
@@ -40,7 +40,7 @@ class BankDetectorTest {
         coEvery { bankRepository.findBankBySender("2000000") } returns null
         coEvery { bankRepository.getBankByCode("MELLAT") } returns mellat
 
-        val detected = detector.detectBank("2000000", "بانک ملت\nبرداشت 25000")
+        val detected = detector.detectBank("2000000", "بانک ملت\nبرداشت 25000\nمانده: 100000")
         assertThat(detected?.code).isEqualTo("MELLAT")
     }
 
@@ -48,7 +48,7 @@ class BankDetectorTest {
     fun detectBank_fallsBackToOtherBankWhenNoMatch() = runTest {
         coEvery { bankRepository.findBankBySender("99999") } returns null
 
-        val detected = detector.detectBank("99999", "برداشت 25000 ریال")
+        val detected = detector.detectBank("99999", "برداشت 25000 ریال\nمانده: 100000 ریال")
         assertThat(detected?.code).isEqualTo("OTHER")
     }
 }

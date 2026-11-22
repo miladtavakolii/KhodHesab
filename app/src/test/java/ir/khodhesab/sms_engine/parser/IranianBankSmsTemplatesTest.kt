@@ -249,9 +249,9 @@ class IranianBankSmsTemplatesTest {
     }
 
     @Test
-    fun test15_Resalat_WithdrawalWithoutBalance() = runTest {
+    fun test15_Resalat_Withdrawal() = runTest {
         setupMockBank("RESALAT", "20004747")
-        val sms = RawSmsMessage("20004747", "بانک رسالت\nپرداخت کارمزد حساب 1111\nمبلغ: 20,000 ریال", 1000L)
+        val sms = RawSmsMessage("20004747", "بانک رسالت\nپرداخت کارمزد حساب 1111\nمبلغ: 20,000 ریال\nمانده: 1,500,000 ریال", 1000L)
 
         val outcome = parserEngine.parse(sms)
         assertThat(outcome).isInstanceOf(SmsParseOutcome.Success::class.java)
@@ -260,7 +260,7 @@ class IranianBankSmsTemplatesTest {
         assertThat(data.bankCode).isEqualTo("RESALAT")
         assertThat(data.kind).isEqualTo(TransactionKind.WITHDRAWAL)
         assertThat(data.amount).isEqualTo(20_000L)
-        assertThat(data.balanceAfter).isNull()
+        assertThat(data.balanceAfter).isEqualTo(1_500_000L)
     }
 
     @Test

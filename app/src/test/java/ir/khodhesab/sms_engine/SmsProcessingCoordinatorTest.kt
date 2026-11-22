@@ -30,7 +30,7 @@ class SmsProcessingCoordinatorTest {
 
     @Test
     fun processSms_returnsRecordedWhenParseAndRecordSucceed() = runTest {
-        val rawSms = RawSmsMessage("200033", "برداشت از حساب 1234\nمبلغ: 100,000 ریال", 1000L)
+        val rawSms = RawSmsMessage("200033", "برداشت از حساب 1234\nمبلغ: 100,000 ریال\nمانده: 500,000 ریال", 1000L)
         val parsedData = ParsedSmsData("MELLAT", "1234", TransactionKind.WITHDRAWAL, 100_000L, 500_000L, 1000L, rawSms.body, "HASH_1")
 
         coEvery { parserEngine.parse(rawSms) } returns SmsParseOutcome.Success(parsedData)

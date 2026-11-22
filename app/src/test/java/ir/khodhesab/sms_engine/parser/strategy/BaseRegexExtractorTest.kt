@@ -11,8 +11,8 @@ class BaseRegexExtractorTest {
 
     @Test
     fun detectTransactionKind_identifiesWithdrawalAndDepositByKeywords() {
-        val withdrawalText = "برداشت از حساب 1234\nمبلغ: 50,000"
-        val depositText = "واریز به حساب 1234\nمبلغ: 100,000"
+        val withdrawalText = "برداشت از حساب 1234\nمبلغ: 50,000\nمانده: 100,000"
+        val depositText = "واریز به حساب 1234\nمبلغ: 100,000\nمانده: 200,000"
 
         assertThat(BaseRegexExtractor.detectTransactionKind(withdrawalText)).isEqualTo(TransactionKind.WITHDRAWAL)
         assertThat(BaseRegexExtractor.detectTransactionKind(depositText)).isEqualTo(TransactionKind.DEPOSIT)
@@ -20,8 +20,8 @@ class BaseRegexExtractorTest {
 
     @Test
     fun detectTransactionKind_identifiesKindByPlusAndMinusSigns() {
-        val minusText = "مبلغ: 1,200,000-"
-        val plusText = "مبلغ: +500,000"
+        val minusText = "مبلغ: 1,200,000-\nمانده: 5,000,000"
+        val plusText = "مبلغ: +500,000\nمانده: 5,000,000"
 
         assertThat(BaseRegexExtractor.detectTransactionKind(minusText)).isEqualTo(TransactionKind.WITHDRAWAL)
         assertThat(BaseRegexExtractor.detectTransactionKind(plusText)).isEqualTo(TransactionKind.DEPOSIT)
@@ -29,8 +29,8 @@ class BaseRegexExtractorTest {
 
     @Test
     fun extractAmountInRials_convertsTomanToRial() {
-        val tomanSms = "بلو\nبرداشت 150,000 تومان از حساب"
-        val rialSms = "مبلغ: 1,500,000 ریال"
+        val tomanSms = "بلو\nبرداشت 150,000 تومان از حساب\nموجودی: 500,000 تومان"
+        val rialSms = "مبلغ: 1,500,000 ریال\nمانده: 5,000,000 ریال"
 
         val amountTomanInRial = BaseRegexExtractor.extractAmountInRials(tomanSms)
         val amountRialInRial = BaseRegexExtractor.extractAmountInRials(rialSms)

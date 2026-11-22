@@ -46,7 +46,7 @@ class ScoredSmsExtractorTest {
 
     @Test
     fun parse_ignoresDatesTimesAndMaskedCardsAsAmountCandidates() {
-        val body = "تاریخ 1405/08/26 زمان 14:30\nکارت 6037****1234\nواریز: 2,000,000 ریال"
+        val body = "تاریخ 1405/08/26 زمان 14:30\nکارت 6037****1234\nواریز: 2,000,000 ریال\nمانده: 5,000,000 ریال"
         val rawSms = RawSmsMessage("9611", body, 1700000000000L)
 
         val parsed = extractor.parse("MELLI", body, rawSms)
@@ -55,5 +55,28 @@ class ScoredSmsExtractorTest {
         assertThat(parsed?.amount).isEqualTo(2_000_000L)
         assertThat(parsed?.kind).isEqualTo(TransactionKind.DEPOSIT)
         assertThat(parsed?.accountIdentifier).isEqualTo("1234")
+    }
+
+    @Test
+    fun parse_rejectsSmsWithoutBalanceKeyword() {
+        val body = "تخفیف ویژه خرید بالای 500,000 تومان از فروشگاه..."
+        val rawSms = RawSmsMessage("PROMO", body, 1700000000000L)
+
+        val parsed = extractor.parse("OTHER", body, rawSms)
+
+        assertThat(parsed).isNull()
+    }
+
+    @Test
+    fun parse_acceptsGenuineBankSmsWithBalanceFromOtherBank() {
+        val body = "واریز مبلغ 3,500,000 ریال به حساب 4321\nمانده: 18,500,000 ریال"
+        val rawSms = RawSmsMessage("+989120000000", body, 1700000000000L)
+
+        val parsed = extractor.parse("OTHER", body, rawSms)
+
+        assertThat(parsed).isNotNull()
+        assertThat(parsed?.amount).isEqualTo(3_500_000L)
+        assertThat(parsed?.balanceAfter).isEqualTo(18_500_000L)
+        assertThat(parsed?.bankCode).isEqualTo("OTHER")
     }
 }

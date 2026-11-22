@@ -35,6 +35,7 @@ object PersianTextNormalizer {
     fun normalizeCharacters(input: String): String {
         return input
             .replace('ي', 'ی')
+            .replace('ى', 'ی')
             .replace('ك', 'ک')
             .replace('ة', 'ه')
     }

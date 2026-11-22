@@ -128,22 +128,23 @@ The domain layer is 100% pure Kotlin (`ir.khodhesab.domain`), completely decoupl
 flowchart TD
     RawSMS[Raw SMS] --> Clean[PersianTextNormalizer: Unicode Control Strip & Canonical Sender]
     Clean --> Filter{NonFinancialSmsFilter}
-    Filter -- OTP / Failed / Insufficient Balance --> Ignored[IgnoredNonFinancial]
-    Filter -- Valid SMS --> Detector[BankDetector: Canonical Sender + Alphanumeric + OTHER Fallback]
+    Filter -- OTP / Failed / Promotional / Missing Balance --> Ignored[IgnoredNonFinancial]
+    Filter -- Valid SMS WITH Balance --> Detector[BankDetector: Canonical Sender + Alphanumeric + OTHER Fallback]
     Detector --> Strategy[Bank Specific Strategy / ScoredSmsExtractor]
     Strategy --> Scored[ScoredSmsExtractor: Adjacent-Character Filter + Proximity Scoring]
     Scored --> Success[ParsedSmsData]
 ```
 
 ### Context-Window Scoring Rules
-1. **Candidate Filtering:** Matches numeric patterns `\d{1,3}(?:,\d{3})+|\d{4,}` and excludes dates (`/`), times (`:`), masked cards (`*`), hyphenated accounts (`-`), and Sheba IDs (`len > 12`).
-2. **Context Scoring:** Evaluates 25 characters preceding and 12 characters trailing each number:
+1. **Mandatory Balance Indicator Rule:** `NonFinancialSmsFilter` strictly requires the presence of a balance indicator keyword (`مانده`, `موجودی`, `باقیمانده`) after Persian text normalization. Messages lacking a balance keyword, or matching promotional/telecom spam patterns (`لغو 11`, `کد تخفیف`, `قرعه کشی`, `بسته اینترنت`, `مشترک گرامی`), are immediately rejected to eliminate non-bank false positives.
+2. **Candidate Filtering:** Matches numeric patterns `\d{1,3}(?:,\d{3})+|\d{4,}` and excludes dates (`/`), times (`:`), masked cards (`*`), hyphenated accounts (`-`), and Sheba IDs (`len > 12`).
+3. **Context Scoring:** Evaluates 25 characters preceding and 12 characters trailing each number:
    - Balance keywords (`مانده`, `موجودی`) -> `score -= 10` (saved as balance candidate).
    - Account keywords without amount context -> `score -= 4`.
    - Amount / action keywords (`مبلغ`, `واریز`, `برداشت`, `خرید`, `پرداخت`) -> `score += 4` to `+5`.
    - Adjacent `+` / `-` sign -> `score += 3` to `+4`.
    - Toman unit (`تومان`) -> `score += 2` (multiplies amount by 10 for Rials).
-3. **Fallback Bank (`"OTHER"`):** Ensures no SMS transaction from unknown bank shortcodes is discarded.
+4. **Fallback Bank (`"OTHER"`):** Ensures no valid bank SMS with a balance indicator from unknown senders is discarded while remaining protected against false positive non-bank messages.
 
 ## Android Background SMS Processing & Sync Pipeline
 
